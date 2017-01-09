@@ -1,6 +1,6 @@
 package com.nc.events;
 
-import com.nc.scenario.State;
+import com.nc.scenario.states.State;
 
 public final class StateEvent {
 	final State st;

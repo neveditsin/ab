@@ -21,14 +21,14 @@ public class Ssher implements Action {
 	private final List<String> commands;
 	
 	
-	public Ssher(String address, int port, String user, boolean keyAuth, String auth,
+	public Ssher(String address, int port, String user, boolean useKeyAuth, String auth,
 			List<String> commands) {
 		super();
 		this.address = address;
 		this.port = port;
 		this.user = user;
 		this.auth = auth;
-		this.keyAuth = keyAuth;
+		this.keyAuth = useKeyAuth;
 		this.commands = commands;
 	}
 
@@ -37,16 +37,15 @@ public class Ssher implements Action {
 	@Override
 	public Event exec() {
 		try {
-			SshResult sr = keyAuth? execSshKeyAuth(user, auth, address,	port, commands): execSshPswAuth(user, auth, address,
-						port, commands);
+			SshResult sr = execSsh(user, auth, address,	port, commands, keyAuth);
 			Ret lastCommand = sr.getCommandResults().get(
 					sr.getCommandResults().size() - 1);
 			if (sr.isSuccessful()) {
-				return new Event(EventType.SUCCESS, lastCommand.getStdout());
+				return new Event(EventType.SUCCESS, lastCommand.getStdout().concat(lastCommand.getStderr()));
 			} else{
 				return new Event(EventType.FAILURE, address + ": ssh command '"
 						+ lastCommand.getCommand() + "' failed: "
-						+ lastCommand.getStderr());
+						+ lastCommand.getStderr().concat(lastCommand.getStdout()));
 			}
 
 		} catch (JSchException | IOException e) {
@@ -56,18 +55,21 @@ public class Ssher implements Action {
 	}
 	
 	
-	
-	//TODO -- not a convenient way!
-	public static SshResult execSshPswAuth(String user, String password, String host,
-			int port, List<String> commands) throws JSchException, IOException {
-		
+	private static SshResult execSsh(String user, String auth, String host,
+			int port, List<String> commands, boolean useKeyAuth) throws JSchException, IOException {		
 		JSch jsch = new JSch();
 		Session session = null;
 		List<Ret> srl = new ArrayList<>();
 		try {
-			session = jsch.getSession(user, host, port);
-			session.setPassword(password);
-			session.setConfig("StrictHostKeyChecking", "no");
+			if (useKeyAuth) {
+				jsch.addIdentity(auth);
+				session = jsch.getSession(user, host, port);
+			} else {
+				session = jsch.getSession(user, host, port);
+				session.setPassword(auth);
+			}
+			
+			session.setConfig("StrictHostKeyChecking", "no");			
 			session.connect();			
 			
 			batchExec(commands, srl, session);
@@ -82,28 +84,6 @@ public class Ssher implements Action {
 		return new SshResult(srl);
 	}
 	
-	
-	public static SshResult execSshKeyAuth(String user, String keyPath, String host,
-			int port, List<String> commands) throws JSchException, IOException {	
-		JSch jsch = new JSch();
-		jsch.addIdentity(keyPath);
-		Session session = null;
-		List<Ret> srl = new ArrayList<>();
-		try {
-			session = jsch.getSession(user, host, port);
-			session.setConfig("StrictHostKeyChecking", "no");
-			session.connect();
-
-			batchExec(commands, srl, session);
-
-			session.disconnect();
-		} finally {
-			if (session != null && session.isConnected()) {
-				session.disconnect();
-			}
-		}
-		return new SshResult(srl);
-	}
 	
 	private static void batchExec(List<String> commands, List<Ret> results, Session session) throws JSchException, IOException{
 		for (String com : commands) {
@@ -145,7 +125,7 @@ public class Ssher implements Action {
 		}
 	}
 	
-	public static class Ret{
+	private static class Ret{
 		final int ret;
 		final String stdout;
 		final String stderr;
@@ -179,7 +159,7 @@ public class Ssher implements Action {
 		}
 	}
 	
-	public static class SshResult{
+	private static class SshResult{
 		private final List<Ret> commandResults;
 		private final boolean isSuccessful;
 		

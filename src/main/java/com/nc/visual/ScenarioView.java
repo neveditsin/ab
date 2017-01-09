@@ -18,7 +18,7 @@ import com.nc.http.html.HtmlElements;
 import com.nc.http.html.HtmlListOfElements;
 import com.nc.http.html.HtmlTable;
 import com.nc.scenario.Scenario;
-import com.nc.scenario.State;
+import com.nc.scenario.states.State;
 
 public class ScenarioView implements View{
 	private final PlainHtmlHandler handler;

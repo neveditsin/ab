@@ -20,7 +20,7 @@ import com.nc.inform.Info;
 import com.nc.inform.InformUnit;
 import com.nc.inform.Informer;
 import com.nc.scenario.ScenarioPool;
-import com.nc.scenario.State;
+import com.nc.scenario.states.State;
 import com.nc.utils.GlobalLogger;
 import com.nc.visual.UpdateOn;
 import com.nc.visual.View;

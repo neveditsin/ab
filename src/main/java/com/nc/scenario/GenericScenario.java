@@ -12,6 +12,8 @@ import com.nc.events.Event;
 import com.nc.events.EventCollector;
 import com.nc.host.Host;
 import com.nc.inform.Informer;
+import com.nc.scenario.states.State;
+import com.nc.scenario.states.StateType;
 import com.nc.utils.GlobalLogger;
 
 public class GenericScenario implements Scenario {

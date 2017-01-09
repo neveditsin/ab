@@ -57,12 +57,11 @@ public class LocalExec implements Action {
 
 			int ret = pr.waitFor();
 			
+			String res = streamToString(pr.getInputStream()).concat(streamToString(pr.getErrorStream()));
 			if (ret == 0) {
-				return new Event(EventType.SUCCESS,
-						streamToString(pr.getInputStream()));
+				return new Event(EventType.SUCCESS, res);				
 			} else {
-				return new Event(EventType.FAILURE,
-						streamToString(pr.getErrorStream()));
+				return new Event(EventType.FAILURE, res);
 			}
 
 		} catch (Exception e) {
@@ -81,7 +80,7 @@ public class LocalExec implements Action {
 	}
 	
 	public static void main(String[] args){
-		//TODO check
+		System.out.println(new LocalExec("C:\\Program Files\\Java\\jre1.8.0_111\\bin\\java.exe -version", 0L, 0L, false).exec());
 	}
 
 

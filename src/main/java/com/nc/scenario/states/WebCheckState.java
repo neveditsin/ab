@@ -1,4 +1,4 @@
-package com.nc.scenario;
+package com.nc.scenario.states;
 
 import java.util.Map;
 

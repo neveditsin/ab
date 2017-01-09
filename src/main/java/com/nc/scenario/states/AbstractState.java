@@ -1,4 +1,4 @@
-package com.nc.scenario;
+package com.nc.scenario.states;
 
 import java.lang.reflect.Field;
 import java.util.Map;

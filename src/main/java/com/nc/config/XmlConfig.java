@@ -29,16 +29,17 @@ import com.nc.inform.ConsoleInformer;
 import com.nc.inform.EmailInformers;
 import com.nc.inform.InformUnit;
 import com.nc.inform.Informer;
-import com.nc.scenario.FinalState;
 import com.nc.scenario.GenericScenario;
-import com.nc.scenario.InformState;
-import com.nc.scenario.PauseState;
-import com.nc.scenario.PingState;
 import com.nc.scenario.Scenario;
-import com.nc.scenario.SshState;
-import com.nc.scenario.State;
-import com.nc.scenario.StateType;
-import com.nc.scenario.WebCheckState;
+import com.nc.scenario.states.FinalState;
+import com.nc.scenario.states.InformState;
+import com.nc.scenario.states.LocalExecState;
+import com.nc.scenario.states.PauseState;
+import com.nc.scenario.states.PingState;
+import com.nc.scenario.states.SshState;
+import com.nc.scenario.states.State;
+import com.nc.scenario.states.StateType;
+import com.nc.scenario.states.WebCheckState;
 
 
 public class XmlConfig implements Config {
@@ -308,29 +309,11 @@ public class XmlConfig implements Config {
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node n = nl.item(i);
 			String st = n.getNodeName();
-			StateType stateType = StateType.UNDEFINED;
-			switch (st) {
-			case "webcheck":
-				stateType = StateType.WEBCHECK;
-				break;
-			case "ping":
-				stateType = StateType.PING;
-				break;
-			case "ssh":
-				stateType = StateType.SSH;
-				break;
-			case "inform":
-				stateType = StateType.INFORM;
-				break;
-			case "pause":
-				stateType = StateType.PAUSE;
-				break;
-			case "final":
-				stateType = StateType.FINAL;
-				break;
-			default:
-				continue; //skip undefined states
-			}			
+			StateType stateType = StateType.fromString(st);
+			
+			if (stateType.equals(StateType.UNDEFINED)) {
+				continue; // skip undefined states
+			}						
 			
 			if (stateType == StateType.FINAL) {
 				states.add(new FinalState());
@@ -356,6 +339,12 @@ public class XmlConfig implements Config {
 			List<String> commands = new ArrayList<>();
 			String mustContain = null;
 			long pause = 0;
+			
+			String command = "";
+			long timeout = 0L;
+			long forceTerminateIn = 0L;
+			boolean isDaemon = false;
+			
 			for (int j = 0; j < n.getChildNodes().getLength(); j++) {
 				Node ic = n.getChildNodes().item(j);				
 				String nodeName = ic.getNodeName();
@@ -426,8 +415,67 @@ public class XmlConfig implements Config {
 						throw new ConfigurationException(e.getMessage());
 					}					
 					break;
+				case "command":
+					if (!stateType.equals(StateType.LOCAL_EXEC)) {
+						throw new ConfigurationException(
+								"Scneario id: "
+										+ scId
+										+ ". Node name: "
+										+ st
+										+ ": command parameter can only be a part of LOCAL_EXEC state. Current state type : "
+										+ stateType);
+					}			
+					command = (ic.getTextContent());								
+					break;
+				case "timeout_milliseconds":
+					if (!stateType.equals(StateType.LOCAL_EXEC)) {
+						throw new ConfigurationException(
+								"Scneario id: "
+										+ scId
+										+ ". Node name: "
+										+ st
+										+ ": timeout_milliseconds parameter can only be a part of LOCAL_EXEC state. Current state type : "
+										+ stateType);
+					}			
+					try{
+						timeout = Long.parseLong(ic.getTextContent());
+					} catch (NumberFormatException e){				
+						throw new ConfigurationException(e.getMessage());
+					}									
+					break;
+				case "force_terminate_in_milliseconds":
+					if (!stateType.equals(StateType.LOCAL_EXEC)) {
+						throw new ConfigurationException(
+								"Scneario id: "
+										+ scId
+										+ ". Node name: "
+										+ st
+										+ ": force_terminate_in_milliseconds parameter can only be a part of LOCAL_EXEC state. Current state type : "
+										+ stateType);
+					}			
+					try{
+						forceTerminateIn = Long.parseLong(ic.getTextContent());
+					} catch (NumberFormatException e){				
+						throw new ConfigurationException(e.getMessage());
+					}									
+					break;
+				case "is_daemon":
+					if (!stateType.equals(StateType.LOCAL_EXEC)) {
+						throw new ConfigurationException(
+								"Scneario id: "
+										+ scId
+										+ ". Node name: "
+										+ st
+										+ ": is_daemon parameter can only be a part of LOCAL_EXEC state. Current state type : "
+										+ stateType);
+					}			
+					
+					isDaemon = Boolean.parseBoolean(ic.getTextContent());										
+					break;
 				}
 			}
+			
+			//TODO factory?
 			switch (stateType) {
 			case SSH:				
 				states.add(new SshState(seq, transitions, scId, commands));
@@ -444,6 +492,9 @@ public class XmlConfig implements Config {
 			case PAUSE:
 				states.add(new PauseState(seq, transitions, scId, pause));
 				break;
+			case LOCAL_EXEC:
+				states.add(new LocalExecState(seq, transitions, scId, command, timeout, forceTerminateIn, isDaemon));
+				break;
 			case UNDEFINED:
 				throw new ConfigurationException("Scneario id: " + scId
 						+ ". State type with seq '" + seq
@@ -453,6 +504,8 @@ public class XmlConfig implements Config {
 			}		
 		}
 		
+		
+		//integrity checks
 		if (!seqs.contains("initial")) {
 			throw new ConfigurationException(
 					"Scneario id: "

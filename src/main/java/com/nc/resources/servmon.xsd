@@ -128,6 +128,18 @@
     <xs:attribute type="xs:string" name="seq" use="required"/>
   </xs:complexType>
   
+  
+  <xs:complexType name="local_execType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="command" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="xs:boolean" name="is_daemon" minOccurs="0" maxOccurs="1"/>
+      <xs:element type="xs:long" name="timeout_milliseconds" minOccurs="0" maxOccurs="1"/>
+      <xs:element type="xs:long" name="force_terminate_in_milliseconds" minOccurs="0" maxOccurs="1"/>
+      <xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="seq" use="required"/>
+  </xs:complexType>
+  
   <xs:complexType name="statesType">
    <xs:sequence>
     <xs:choice minOccurs="1" maxOccurs="unbounded">
@@ -135,7 +147,8 @@
       <xs:element type="pingType" name="ping"/>
       <xs:element type="sshType" name="ssh"/>
       <xs:element type="informType" name="inform"/>      
-      <xs:element type="pauseType" name="pause"/>  
+      <xs:element type="pauseType" name="pause"/> 
+      <xs:element type="local_execType" name="local_exec"/> 
     </xs:choice>	
     <xs:element type="xs:string" name="final" minOccurs="1" maxOccurs="1"/>
    </xs:sequence>
