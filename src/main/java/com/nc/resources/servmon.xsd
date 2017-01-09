@@ -1,0 +1,185 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="servmoncfg" type="servmoncfgType"/>
+  
+  <!--hosts section begin-->
+  <xs:complexType name="ssh_paramsType">
+    <xs:sequence>
+      <xs:element type="xs:unsignedShort" name="port" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="xs:string" name="username"  minOccurs="1" maxOccurs="1"/>
+	  <xs:choice>
+		<xs:element type="xs:string" name="password"  minOccurs="1" maxOccurs="1"/>
+		<xs:element type="xs:string" name="keypath"  minOccurs="1" maxOccurs="1"/>
+	  </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="hostType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="address" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="xs:anyURI" name="url" minOccurs="0" maxOccurs="1"/>
+      <xs:element type="ssh_paramsType" name="ssh_params" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="id" use="required"/>
+  </xs:complexType>  
+  <xs:complexType name="hostsType">
+    <xs:sequence>
+      <xs:element type="hostType" name="host" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--hosts section end-->
+  
+  <!--informers section begin-->
+  <xs:complexType name="addresseesType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="address" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="connection_parametersType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="host_name" minOccurs="1" maxOccurs="1"/>
+	  <xs:element type="xs:unsignedShort" name="smtp_port" minOccurs="1" maxOccurs="1"/>
+	  <xs:element type="xs:boolean" name="use_ssl" minOccurs="1" maxOccurs="1"/>
+	  <xs:element type="xs:boolean" name="use_tls" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="emailType">
+    <xs:sequence>
+	   <xs:choice>
+		<xs:element type="xs:string" name="provider" minOccurs="1" maxOccurs="1"/>
+		<xs:element type="connection_parametersType" name="connection_parameters"  minOccurs="1" maxOccurs="1"/>
+	  </xs:choice>	  
+      <xs:element type="xs:string" name="email_address" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="xs:string" name="sender_name" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="xs:string" name="password" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="addresseesType" name="addressees" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="informerType">
+    <xs:sequence>
+      <xs:element type="emailType" name="email" minOccurs="0" maxOccurs="1"/>
+      <xs:element type="xs:string" name="console" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="id" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="informersType">
+    <xs:sequence>
+      <xs:element type="informerType" name="informer" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--informers section end-->
+  
+  <!--states section begin-->
+  <xs:complexType name="transitionType">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute type="xs:string" name="event" use="required"/>
+        <xs:attribute type="xs:string" name="target" use="required"/>
+        <xs:attribute type="xs:string" name="tag" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  
+  
+  <xs:complexType name="webcheckType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="must_contain" minOccurs="0" maxOccurs="1"/>
+      <xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="seq" use="required"/>
+  </xs:complexType>
+  
+  
+  <xs:complexType name="pingType">
+    <xs:sequence>
+      <xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="seq" use="required"/>
+  </xs:complexType>
+  
+  
+  <xs:complexType name="commandsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="command" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>  
+  
+  <xs:complexType name="sshType">
+    <xs:sequence>
+      <xs:element type="commandsType" name="commands" minOccurs="0" maxOccurs="1" />
+      <xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="seq" use="required"/>
+  </xs:complexType>
+  
+  
+  <xs:complexType name="informType">
+    <xs:sequence>
+      <xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="seq" use="required"/>
+  </xs:complexType>
+  
+   <xs:complexType name="pauseType">
+    <xs:sequence>
+      <xs:element type="xs:long" name="pause_milliseconds" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="seq" use="required"/>
+  </xs:complexType>
+  
+  <xs:complexType name="statesType">
+   <xs:sequence>
+    <xs:choice minOccurs="1" maxOccurs="unbounded">
+      <xs:element type="webcheckType" name="webcheck"/>
+      <xs:element type="pingType" name="ping"/>
+      <xs:element type="sshType" name="ssh"/>
+      <xs:element type="informType" name="inform"/>      
+      <xs:element type="pauseType" name="pause"/>  
+    </xs:choice>	
+    <xs:element type="xs:string" name="final" minOccurs="1" maxOccurs="1"/>
+   </xs:sequence>
+  </xs:complexType>
+  <!--states section end-->
+  
+  <!--scenarios section end-->
+  <xs:complexType name="host_idsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="host_id" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="informer_idsType">
+    <xs:sequence>
+      <xs:element type="xs:string" name="informer_id" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="scenarioType">
+    <xs:sequence>
+      <xs:element type="statesType" name="states" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="host_idsType" name="host_ids" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="informer_idsType" name="informer_ids" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute type="xs:string" name="id" use="required"/>
+    <xs:attribute type="xs:unsignedInt" name="interval" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="scenariosType">
+    <xs:sequence>
+      <xs:element type="scenarioType" name="scenario"  minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--scenarios section end-->
+  
+   
+  
+  <xs:complexType name="servmoncfgType">
+    <xs:sequence>
+      <xs:element type="hostsType" name="hosts" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="informersType" name="informers" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="scenariosType" name="scenarios" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="xs:string" name="inform_unit" minOccurs="1" maxOccurs="1" />
+      <xs:element type="xs:unsignedShort" name="http_port" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+</xs:schema>
