@@ -32,14 +32,10 @@ import com.nc.inform.Informer;
 import com.nc.scenario.GenericScenario;
 import com.nc.scenario.Scenario;
 import com.nc.scenario.states.FinalState;
-import com.nc.scenario.states.InformState;
-import com.nc.scenario.states.LocalExecState;
-import com.nc.scenario.states.PauseState;
-import com.nc.scenario.states.PingState;
-import com.nc.scenario.states.SshState;
 import com.nc.scenario.states.State;
 import com.nc.scenario.states.StateType;
-import com.nc.scenario.states.WebCheckState;
+import com.nc.scenario.states.States;
+
 
 
 public class XmlConfig implements Config {
@@ -302,63 +298,62 @@ public class XmlConfig implements Config {
 		return scInformers;
 	}
 	
-	private static List<State> parseStates(NodeList nl, String scId) throws ConfigurationException{
+	private static List<State> parseStates(NodeList nl, String scId)
+			throws ConfigurationException {
 		List<State> states = new ArrayList<>();
 		Set<String> seqs = new HashSet<>();
 		boolean hasFinal = false;
+
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node n = nl.item(i);
 			String st = n.getNodeName();
 			StateType stateType = StateType.fromString(st);
-			
+
 			if (stateType.equals(StateType.UNDEFINED)) {
 				continue; // skip undefined states
-			}						
-			
+			}
+
 			if (stateType == StateType.FINAL) {
 				states.add(new FinalState());
 				hasFinal = true;
-				continue; //final state has no parameters
+				continue; // final state has no parameters
 			}
-			
-			//get seq
-			String seq = null;			
+
+			// get seq
+			String seq = null;
 			NamedNodeMap stateAttributes = n.getAttributes();
-			if(stateAttributes!=null){
+			if (stateAttributes != null) {
 				Node nseq = stateAttributes.getNamedItem("seq");
-				if (nseq!=null){
+				if (nseq != null) {
 					seq = nseq.getTextContent();
-					if(seqs.add(seq) != true){
-						throw new ConfigurationException("Scneario id: " + scId + ". Each state should have unique seq. Seq '" + seq + "' is not unique.");
+					if (seqs.add(seq) != true) {
+						throw new ConfigurationException("Scneario id: " + scId
+								+ ". Each state should have unique seq. Seq '"
+								+ seq + "' is not unique.");
 					}
 				}
 			}
-			//end get seq
-			
+			// end get seq
+
+			// collect parameters begin
 			Map<Event, String> transitions = new HashMap<>();
-			List<String> commands = new ArrayList<>();
-			String mustContain = null;
-			long pause = 0;
-			
-			String command = "";
-			long timeout = 0L;
-			long forceTerminateIn = 0L;
-			boolean isDaemon = false;
-			
+			Map<String, Object> parameters = new HashMap<>();
 			for (int j = 0; j < n.getChildNodes().getLength(); j++) {
-				Node ic = n.getChildNodes().item(j);				
+				Node ic = n.getChildNodes().item(j);
 				String nodeName = ic.getNodeName();
 				switch (nodeName) {
 				case "transition":
-					    String contains = null;
-					    if(ic.getAttributes().getNamedItem("tag") != null){
-					    	contains = ic.getAttributes().getNamedItem("tag").getTextContent();
-					    }
-						Event evt = new Event(Event.EventType.fromString(ic.getAttributes()
-								.getNamedItem("event").getTextContent()), contains);
-						if(transitions.put(evt, ic
-								.getAttributes().getNamedItem("target")
-								.getTextContent()) != null){
+					String contains = null;
+					if (ic.getAttributes().getNamedItem("tag") != null) {
+						contains = ic.getAttributes().getNamedItem("tag")
+								.getTextContent();
+					}
+					Event evt = new Event(Event.EventType.fromString(ic
+							.getAttributes().getNamedItem("event")
+							.getTextContent()), contains);
+					if (transitions.put(evt,
+							ic.getAttributes().getNamedItem("target")
+									.getTextContent()) != null) {
 						throw new ConfigurationException(
 								"Scneario id: "
 										+ scId
@@ -367,22 +362,11 @@ public class XmlConfig implements Config {
 										+ ": transition is not unique. If you use multiple 'tag' attributes make sure "
 										+ "they are not interfered (e.g., tag = 'abcde' equals to tag = 'abc'). Event: "
 										+ evt);
-						}
-					
-					break;
-				case "must_contain":
-					if (!stateType.equals(StateType.WEBCHECK)) {
-						throw new ConfigurationException(
-								"Scneario id: "
-										+ scId
-										+ ". Node name: "
-										+ st
-										+ ": must_contain parameter can only be a part of WEBCHECK state. Current state type : "
-										+ stateType);
 					}
-					mustContain = ic.getTextContent();					
 					break;
+
 				case "commands":
+					List<String> commands = new ArrayList<>();
 					if (!stateType.equals(StateType.SSH)) {
 						throw new ConfigurationException(
 								"Scneario id: "
@@ -393,119 +377,30 @@ public class XmlConfig implements Config {
 										+ stateType);
 					}
 					for (int k = 0; k < ic.getChildNodes().getLength(); k++) {
-						if (ic.getChildNodes().item(k).getNodeName().equals("command")) {
+						if (ic.getChildNodes().item(k).getNodeName()
+								.equals("command")) {
 							commands.add(ic.getChildNodes().item(k)
 									.getTextContent());
 						}
 					}
+					parameters.put(nodeName, commands);
+
 					break;
-				case "pause":
-					if (!stateType.equals(StateType.PAUSE)) {
-						throw new ConfigurationException(
-								"Scneario id: "
-										+ scId
-										+ ". Node name: "
-										+ st
-										+ ": pause parameter can only be a part of PAUSE state. Current state type : "
-										+ stateType);
-					}
-					try{
-						pause = Long.parseLong(ic.getTextContent());
-					} catch (NumberFormatException e){				
-						throw new ConfigurationException(e.getMessage());
-					}					
+				default:
+					parameters.put(nodeName, ic.getTextContent());
 					break;
-				case "command":
-					if (!stateType.equals(StateType.LOCAL_EXEC)) {
-						throw new ConfigurationException(
-								"Scneario id: "
-										+ scId
-										+ ". Node name: "
-										+ st
-										+ ": command parameter can only be a part of LOCAL_EXEC state. Current state type : "
-										+ stateType);
-					}			
-					command = (ic.getTextContent());								
-					break;
-				case "timeout_milliseconds":
-					if (!stateType.equals(StateType.LOCAL_EXEC)) {
-						throw new ConfigurationException(
-								"Scneario id: "
-										+ scId
-										+ ". Node name: "
-										+ st
-										+ ": timeout_milliseconds parameter can only be a part of LOCAL_EXEC state. Current state type : "
-										+ stateType);
-					}			
-					try{
-						timeout = Long.parseLong(ic.getTextContent());
-					} catch (NumberFormatException e){				
-						throw new ConfigurationException(e.getMessage());
-					}									
-					break;
-				case "force_terminate_in_milliseconds":
-					if (!stateType.equals(StateType.LOCAL_EXEC)) {
-						throw new ConfigurationException(
-								"Scneario id: "
-										+ scId
-										+ ". Node name: "
-										+ st
-										+ ": force_terminate_in_milliseconds parameter can only be a part of LOCAL_EXEC state. Current state type : "
-										+ stateType);
-					}			
-					try{
-						forceTerminateIn = Long.parseLong(ic.getTextContent());
-					} catch (NumberFormatException e){				
-						throw new ConfigurationException(e.getMessage());
-					}									
-					break;
-				case "is_daemon":
-					if (!stateType.equals(StateType.LOCAL_EXEC)) {
-						throw new ConfigurationException(
-								"Scneario id: "
-										+ scId
-										+ ". Node name: "
-										+ st
-										+ ": is_daemon parameter can only be a part of LOCAL_EXEC state. Current state type : "
-										+ stateType);
-					}			
-					
-					isDaemon = Boolean.parseBoolean(ic.getTextContent());										
-					break;
+
 				}
+
 			}
+			// collect parameters end
 			
-			//TODO factory?
-			switch (stateType) {
-			case SSH:				
-				states.add(new SshState(seq, transitions, scId, commands));
-				break;
-			case WEBCHECK:
-				states.add(new WebCheckState(seq, transitions, scId, mustContain));
-				break;
-			case INFORM:
-				states.add(new InformState(seq, transitions, scId));
-				break;
-			case PING:
-				states.add(new PingState(seq, transitions, scId));
-				break;
-			case PAUSE:
-				states.add(new PauseState(seq, transitions, scId, pause));
-				break;
-			case LOCAL_EXEC:
-				states.add(new LocalExecState(seq, transitions, scId, command, timeout, forceTerminateIn, isDaemon));
-				break;
-			case UNDEFINED:
-				throw new ConfigurationException("Scneario id: " + scId
-						+ ". State type with seq '" + seq
-						+ "' is undefined. Node name: " + st);
-			default:
-				break;
-			}		
+			states.add(States.newState(stateType, seq, transitions, scId, parameters));
 		}
 		
-		
-		//integrity checks
+
+
+		// integrity checks
 		if (!seqs.contains("initial")) {
 			throw new ConfigurationException(
 					"Scneario id: "
@@ -513,7 +408,7 @@ public class XmlConfig implements Config {
 							+ ". Initial state not found. "
 							+ "Each scenario should start with the state with seq=\"initial\"");
 		}
-		
+
 		if (!hasFinal) {
 			throw new ConfigurationException("Scneario id: " + scId
 					+ ". Final state not found. "
@@ -522,6 +417,7 @@ public class XmlConfig implements Config {
 
 		return states;
 	}
+		
 
 
 

@@ -4,17 +4,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum StateType {
-	SSH("ssh"),
-	PING("ping"),
-	PAUSE("pause"),
-	WEBCHECK("webcheck"),
-	INFORM("inform"),
-	LOCAL_EXEC("local_exec"),
-	FINAL("final"),
-	UNDEFINED("undefined");
+	SSH("ssh", SshState.class),
+	PING("ping", PingState.class),
+	PAUSE("pause",  PauseState.class),
+	WEBCHECK("webcheck", WebCheckState.class),
+	INFORM("inform", InformState.class),
+	LOCAL_EXEC("local_exec", LocalExecState.class),
+	FINAL("final", FinalState.class),
+	UNDEFINED("undefined", null);
 	
-	private String configName;
 	private static final Map<String, StateType> MAP = new HashMap<>();
+	
+	
+	private final String configName;
+	private final Class<? extends State> implementingClass;
+
 
 	static {
 		for (StateType e : StateType.values()) {
@@ -22,11 +26,18 @@ public enum StateType {
 		}
 	}
 
-	StateType(String configName) {
+	StateType(String configName, Class<? extends State> implementingClass) {
 		this.configName = configName;
+		this.implementingClass = implementingClass;
 	}
 
 	public static StateType fromString(String stateType) {
 		return MAP.getOrDefault(stateType.toLowerCase(), UNDEFINED);
+	}	
+	
+	
+	public Class<? extends State> getImplementingClass(){
+		return implementingClass;
 	}
+
 }

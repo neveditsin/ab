@@ -2,17 +2,19 @@ package com.nc.scenario.states;
 
 import java.util.Map;
 
+import javax.naming.ConfigurationException;
+
 import com.nc.events.Event;
 import com.nc.events.EventCollector;
 import com.nc.events.Event.EventType;
 import com.nc.host.Host;
 
-public class InformState extends AbstractState {
+class InformState extends AbstractState {
 
-
-	public InformState(String seq, Map<Event, String> transitions,
-			String scenarioId) {
-		super(seq, transitions, scenarioId);
+	InformState(String seq, Map<Event, String> transitions,
+			String scenarioId, Map<String, Object> parameters)
+			throws ConfigurationException {
+		super(seq, transitions, scenarioId, parameters);
 	}
 
 	@Override

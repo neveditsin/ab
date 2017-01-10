@@ -7,6 +7,8 @@ import com.nc.events.Event;
 import com.nc.events.Event.EventType;
 import com.nc.host.Host;
 
+
+//TODO extend as
 public class FinalState implements State {
 	private static Map<Event, String> transitions = new HashMap<>();
 	static {

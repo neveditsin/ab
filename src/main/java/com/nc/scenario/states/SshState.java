@@ -3,20 +3,28 @@ package com.nc.scenario.states;
 import java.util.List;
 import java.util.Map;
 
+import javax.naming.ConfigurationException;
+
 import com.nc.action.Ssher;
 import com.nc.events.Event;
 import com.nc.events.Event.EventType;
 import com.nc.host.Host;
 
-public class SshState extends AbstractState {
-
+class SshState extends AbstractState {
+	
+	@StateParameter(isOptional = false, xmlName = "commands")
 	private final List<String> commands;
 	
-	public SshState(String seq, Map<Event, String> transitions,
-			String scenarioId, List<String> commands) {
-		super(seq, transitions, scenarioId);
-		this.commands = commands;
+	@SuppressWarnings("unchecked")
+	SshState(String seq, Map<Event, String> transitions,
+			String scenarioId, Map<String, Object> parameters)
+			throws ConfigurationException {
+		super(seq, transitions, scenarioId, parameters);
+		
+		commands = (List<String>) parameters.get("commands");
 	}
+
+
 
 	@Override
 	public StateType getType() {

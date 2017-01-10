@@ -2,22 +2,26 @@ package com.nc.scenario.states;
 
 import java.util.Map;
 
-
+import javax.naming.ConfigurationException;
 
 import com.nc.action.WebChecker;
 import com.nc.events.Event;
 import com.nc.events.Event.EventType;
 import com.nc.host.Host;
 
-public class WebCheckState extends AbstractState {
-	
+class WebCheckState extends AbstractState {
+	@StateParameter(isOptional = true, xmlName = "must_contain")
 	private final String mustContain;
 	
-	public WebCheckState(String seq, Map<Event, String> transitions,
-			String scenarioId, String mustContain) {
-		super(seq, transitions, scenarioId);
-		this.mustContain = mustContain;
+	
+	WebCheckState(String seq, Map<Event, String> transitions,
+			String scenarioId, Map<String, Object> parameters) throws ConfigurationException {
+		super(seq, transitions, scenarioId, parameters);
+		
+		mustContain = (String) parameters.get("must_contain");
 	}
+
+
 	
 	@Override
 	public StateType getType() {
@@ -34,5 +38,5 @@ public class WebCheckState extends AbstractState {
 			return new Event(EventType.UNSUPPORTED, e.toString());
 		}		
 	}
-
+	
 }
