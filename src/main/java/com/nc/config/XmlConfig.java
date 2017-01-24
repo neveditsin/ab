@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -236,7 +237,7 @@ public class XmlConfig implements Config {
 				String nodeName = ic.getNodeName();
 				switch (nodeName) {
 				case "states":
-					scStates.addAll(parseStates(ic.getChildNodes(), scId));
+					scStates.addAll(parseStates(ic.getChildNodes(), hosts, scId));
 					//System.out.println(scStates);
 					break;
 				case "host_ids":
@@ -298,7 +299,7 @@ public class XmlConfig implements Config {
 		return scInformers;
 	}
 	
-	private static List<State> parseStates(NodeList nl, String scId)
+	private static List<State> parseStates(NodeList nl, List<Host> hosts, String scId)
 			throws ConfigurationException {
 		List<State> states = new ArrayList<>();
 		Set<String> seqs = new HashSet<>();
@@ -319,7 +320,9 @@ public class XmlConfig implements Config {
 				continue; // final state has no parameters
 			}
 
-			// get seq
+			
+			Map<String, Object> parameters = new HashMap<>();
+			// get attributes
 			String seq = null;
 			NamedNodeMap stateAttributes = n.getAttributes();
 			if (stateAttributes != null) {
@@ -327,17 +330,32 @@ public class XmlConfig implements Config {
 				if (nseq != null) {
 					seq = nseq.getTextContent();
 					if (seqs.add(seq) != true) {
-						throw new ConfigurationException("Scneario id: " + scId
-								+ ". Each state should have unique seq. Seq '"
+						throw new ConfigurationException("Scneario id: '" + scId
+								+ "'. Each state should have unique seq. Seq '"
 								+ seq + "' is not unique.");
 					}
+				}
+				Node nhost = stateAttributes.getNamedItem("host_id");
+				if (nhost != null) {
+					String hid = nhost.getTextContent();
+					Host oh = null;
+					try {
+						oh = hosts.stream().filter(h -> h.getId().equals(hid))
+								.findFirst().get();
+					} catch (NoSuchElementException e) {
+						throw new ConfigurationException("Scneario id: '" + scId
+								+ "'. State seq: '" + seq + "'. Host with id '"
+								+ hid + "' not found");
+					}
+
+					parameters.put("host_id", oh);
 				}
 			}
 			// end get seq
 
 			// collect parameters begin
 			Map<Event, String> transitions = new HashMap<>();
-			Map<String, Object> parameters = new HashMap<>();
+
 			for (int j = 0; j < n.getChildNodes().getLength(); j++) {
 				Node ic = n.getChildNodes().item(j);
 				String nodeName = ic.getNodeName();

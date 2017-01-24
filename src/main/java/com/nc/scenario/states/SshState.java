@@ -15,6 +15,9 @@ class SshState extends AbstractState {
 	@StateParameter(isOptional = false, xmlName = "commands")
 	private final List<String> commands;
 	
+	@StateParameter(isOptional = true, xmlName = "host_id")
+	private final Host overriddenHost;
+	
 	@SuppressWarnings("unchecked")
 	SshState(String seq, Map<Event, String> transitions,
 			String scenarioId, Map<String, Object> parameters)
@@ -22,6 +25,8 @@ class SshState extends AbstractState {
 		super(seq, transitions, scenarioId, parameters);
 		
 		commands = (List<String>) parameters.get("commands");
+		
+		overriddenHost = (Host) parameters.get("host_id");		
 	}
 
 
@@ -34,7 +39,8 @@ class SshState extends AbstractState {
 	@Override
 	public Event run(Host h) {
 		try{
-			Ssher ss = new Ssher(h.getAddress(), h.getSshPort(), h.getSshUsername(), false, h.getSshPawwsord(), commands);
+			Host host = overriddenHost != null? overriddenHost : h;
+			Ssher ss = new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), false, host.getSshPawwsord(), commands);
 			return ss.exec();
 		} catch (UnsupportedOperationException e){
 			return new Event(EventType.UNSUPPORTED, e.toString());
