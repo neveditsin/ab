@@ -160,7 +160,7 @@ public class MainPage implements View{
 		for (Scenario sc : scenarios) {
 			scenarioTable.addRow(sc.getId(), Arrays.asList(
 					new HtmlLink(sc.getId(), "scenario_" + sc.getId()),
-					HtmlElements.newSimpleElementFromString("NOT STARTED"),
+					HtmlElements.newSimpleElementFromString("UNKNOWN OR IN PROCESS"),
 					new HtmlListOfElements(hosts.get(sc.getId()))));
 		}
 		l.add(scenarioTable);

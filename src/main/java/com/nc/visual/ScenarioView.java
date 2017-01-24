@@ -8,7 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Multimap;
+import com.nc.events.Event;
 import com.nc.events.StateEvent;
+import com.nc.events.Event.EventType;
 import com.nc.host.Host;
 import com.nc.http.HttpUi;
 import com.nc.http.PlainHtmlHandler;
@@ -112,11 +114,12 @@ public class ScenarioView implements View{
 	private final Scenario sc;
 	private final HtmlTable scenarioStatisticsTable;
 	private final AtomicInteger execCount = new AtomicInteger(0);
+	private final AtomicInteger failExecCount = new AtomicInteger(0);
 	
 	private static final String N_EXEC = "Number of Executions";
+	private static final String FAIL_EXEC = "Unsuccessful Excecutions";
 	private static final String STARTED_AT = "Started at";
 	private static final String INTERVAL = "Exectution Interval";
-
 
 	
 	public ScenarioView(Scenario sc){
@@ -161,6 +164,10 @@ public class ScenarioView implements View{
 				Arrays.asList(HtmlElements.newSimpleElementFromString(N_EXEC),
 						HtmlElements.newSimpleElementFromString(Integer.toString(execCount.get()))));
 		
+		scenarioStatisticsTable.addRow(FAIL_EXEC, 
+				Arrays.asList(HtmlElements.newSimpleElementFromString(FAIL_EXEC),
+						HtmlElements.newSimpleElementFromString(Integer.toString(failExecCount.get()))));
+
 		
 		staticContent.add(scenarioStatisticsTable);
 		
@@ -191,6 +198,22 @@ public class ScenarioView implements View{
 		scenarioStatisticsTable.updateRow(N_EXEC, Arrays.asList(HtmlElements
 				.newSimpleElementFromString(N_EXEC), HtmlElements
 				.newSimpleElementFromString(Integer.toString(execCount.get()))));
+		
+		
+		long fails = hse
+				.values()
+				.stream()
+				.map(StateEvent::getEvent)
+				.map(Event::getEventType)
+				.filter(et -> et.equals(EventType.EXCEPTION)|| et.equals(EventType.FAILURE)).count();
+		
+		if (fails > 0) {			
+			scenarioStatisticsTable.updateRow(FAIL_EXEC, Arrays.asList(
+					HtmlElements.newSimpleElementFromString(FAIL_EXEC),
+					HtmlElements.newSimpleElementFromString(Integer
+							.toString(failExecCount.incrementAndGet()))));
+		}
+		
 
 
 	}
@@ -198,7 +221,7 @@ public class ScenarioView implements View{
 
 	@Override
 	public UpdateOn getUpdateCondition() {
-		return UpdateOn.SCENARIO_RUN;
+		return UpdateOn.SCENARIO_FINISH;
 	}
 
 

@@ -1,5 +1,7 @@
 package com.nc.events;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -54,7 +56,7 @@ public enum EventCollector {
 	public void scenarioStart(String scenarioId){
 		views.stream()
 				.filter(v -> v.getUpdateCondition().equals(
-						UpdateOn.SCENARIO_RUN))
+						UpdateOn.SCENARIO_START))
 				.forEach(vw -> vw.updateView(scenarioId, EMPTY_MMAP));
 	}
 	
@@ -86,6 +88,11 @@ public enum EventCollector {
 						.getScenario(scenarioId).getInformers());
 			}			
 		}
+		views.stream()
+				.filter(v -> v.getUpdateCondition().equals(
+						UpdateOn.SCENARIO_FINISH))
+				.forEach(vw -> vw.updateView(scenarioId, em.get(scenarioId)));
+		
 		em.get(scenarioId).clear();
 	}
 	
@@ -115,6 +122,12 @@ public enum EventCollector {
 		StringBuilder shortDesc = new StringBuilder();
 		//shortDesc.append("TOTAL: ");
 
+		try {
+			fullDesc.append("Instance IP: ").append(InetAddress.getLocalHost()).append("\n");
+		} catch (UnknownHostException e1) {	
+			GlobalLogger.warning(e1.toString());
+		}
+		
 		for (Host h : execEvents.keySet()) {
 			
 			fullDesc.append("\n -").append(h).append(":\n");
