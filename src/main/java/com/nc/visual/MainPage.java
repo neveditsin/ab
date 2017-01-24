@@ -168,22 +168,43 @@ public class MainPage implements View{
 		
 	}
 	private void update(String scenarioId, Multimap<Host, StateEvent> hse){
+		
+
+		if (hse.values().stream().map(StateEvent::getEvent)
+				.map(Event::getEventType)
+				.filter(et -> et.equals(EventType.ABNORMAL_TERMINATION))
+				.count() > 0) {
+			scenarioTable
+					.updateRow(scenarioId,
+							Arrays.asList(new HtmlLink(scenarioId, "scenario_" + scenarioId),
+									HtmlElements
+											.newSimpleElementFromString("TERMINATED ABNORMALLY: see log for details"),
+									new HtmlListOfElements(hosts
+											.get(scenarioId))));
+			return;
+		}
+
 		List<HtmlElement> status = hse
-					.values()
-					.stream()
-					.map(StateEvent::getEvent)
-					.map(Event::getEventType)
-					.filter(et -> et.equals(EventType.EXCEPTION) || et.equals(EventType.FAILURE))
-					.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-					.entrySet()
-					.stream()
-					.map(e -> HtmlElements.newSimpleElementFromString(e.getKey() + "S: " + e.getValue()))
-					.collect(Collectors.toList());			
-			
+				.values()
+				.stream()
+				.map(StateEvent::getEvent)
+				.map(Event::getEventType)
+				.filter(et -> et.equals(EventType.EXCEPTION)
+						|| et.equals(EventType.FAILURE))
+				.collect(
+						Collectors.groupingBy(Function.identity(),
+								Collectors.counting()))
+				.entrySet()
+				.stream()
+				.map(e -> HtmlElements.newSimpleElementFromString(e.getKey()
+						+ "S: " + e.getValue())).collect(Collectors.toList());
+
 		scenarioTable.updateRow(scenarioId, Arrays.asList(
-					new HtmlLink(scenarioId, "scenario_" + scenarioId),
-					status.isEmpty()? HtmlElements.newSimpleElementFromString("FINE") : new HtmlListOfElements(status),
-					new HtmlListOfElements(hosts.get(scenarioId))));
+				new HtmlLink(scenarioId, "scenario_" + scenarioId),
+				status.isEmpty() ? HtmlElements
+						.newSimpleElementFromString("FINE")
+						: new HtmlListOfElements(status),
+				new HtmlListOfElements(hosts.get(scenarioId))));
 
 	}
 

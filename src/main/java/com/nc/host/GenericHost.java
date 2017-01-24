@@ -15,6 +15,7 @@ public class GenericHost implements Host{
 	private final String sshPassword;
 	private final String sshKeypath;
 	private final Map<String, Object> paramMap;
+	private final Map<String, String> tagMap;
 	
 	private static final Map<String, String> fieldNameMap;
 	static {
@@ -28,7 +29,7 @@ public class GenericHost implements Host{
 	
 
 	private GenericHost(String id, String address, String url, Integer sshPort,
-			String sshUsername, String sshPassword, String sshKeypath) {
+			String sshUsername, String sshPassword, String sshKeypath, Map<String, String> tagMap) {
 		super();
 		this.id = id;
 		this.address = address;
@@ -37,6 +38,7 @@ public class GenericHost implements Host{
 		this.sshUsername = sshUsername;
 		this.sshPassword = sshPassword;
 		this.sshKeypath = sshKeypath;
+		this.tagMap = tagMap;
 		
 		paramMap = new TreeMap<>();
 		for (Field field : this.getClass().getDeclaredFields()) {
@@ -47,15 +49,11 @@ public class GenericHost implements Host{
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				e.printStackTrace();
 			}
-			paramMap.put(fieldNameMap.getOrDefault(name, name), value);
-		}
-		//remove maps
-		paramMap.remove("paramMap");
-		paramMap.remove("fieldNameMap");
-		//remove sshPassword and sshKeypath for security reasons
-		paramMap.remove("sshPassword");
-		paramMap.remove("sshKeypath");
 
+			if (fieldNameMap.containsKey(name)) {
+				paramMap.put(fieldNameMap.get(name), value);
+			}
+		}
 	}
 	
 	@Override
@@ -89,6 +87,7 @@ public class GenericHost implements Host{
 		private String sshUsername;
 		private String sshPassword;
 		private String sshKeypath;
+		private Map<String, String> tagMap;
 		
 		public GenericHostBuilder(String id){
 			this.id = id;
@@ -115,6 +114,11 @@ public class GenericHost implements Host{
 			this.sshPassword = sshPassword;
 			return this;
 		}
+		public GenericHostBuilder setTagMap(Map<String, String> tagMap) {
+			this.tagMap = tagMap;
+			return this;
+		}
+		
 		public GenericHostBuilder setSshKeypath(String sshKeypath) {
 			this.sshKeypath = sshKeypath;
 			return this;
@@ -122,7 +126,7 @@ public class GenericHost implements Host{
 		
 		public GenericHost getGenericHost(){
 			return new GenericHost(id, address, url, sshPort,
-					sshUsername, sshPassword, sshKeypath);
+					sshUsername, sshPassword, sshKeypath, tagMap);
 		}		
 	}	
 	
@@ -193,6 +197,11 @@ public class GenericHost implements Host{
 	@Override
 	public Map<String, Object> getParams() {
 		return paramMap;
+	}
+
+	@Override
+	public Map<String, String> getTagMap() {
+		return tagMap;
 	}
 
 

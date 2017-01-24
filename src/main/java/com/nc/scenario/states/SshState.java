@@ -1,5 +1,6 @@
 package com.nc.scenario.states;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import com.nc.action.Ssher;
 import com.nc.events.Event;
 import com.nc.events.Event.EventType;
 import com.nc.host.Host;
+import com.nc.utils.Utils;
 
 class SshState extends AbstractState {
 	
@@ -37,14 +39,25 @@ class SshState extends AbstractState {
 	}
 
 	@Override
-	public Event run(Host h) {
+	public Event run(Host h) throws ConfigurationException {
 		try{
 			Host host = overriddenHost != null? overriddenHost : h;
-			Ssher ss = new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), false, host.getSshPawwsord(), commands);
+			
+			//preprocess commands
+			List<String> cmds = new ArrayList<>();
+			for(String cmd : commands){
+				cmds.add(Utils.preprocessString(cmd, host));
+			}
+			
+			Ssher ss = new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), false, host.getSshPawwsord(), cmds);
 			return ss.exec();
 		} catch (UnsupportedOperationException e){
 			return new Event(EventType.UNSUPPORTED, e.toString());
 		}
 	}
+	
+
+	
+
 
 }

@@ -12,6 +12,7 @@ public enum StateType {
 	LOCAL_EXEC("local_exec", LocalExecState.class),
 	FINAL("final", FinalState.class),
 	UNDEFINED("undefined", null);
+
 	
 	private static final Map<String, StateType> MAP = new HashMap<>();
 	

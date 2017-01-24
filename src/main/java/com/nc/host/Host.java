@@ -11,4 +11,5 @@ public interface Host {
 	String getSshPawwsord();
 	String getSshKeypath();
 	Map<String, Object> getParams();
+	Map<String, String> getTagMap();
 }

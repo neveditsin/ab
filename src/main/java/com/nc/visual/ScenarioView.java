@@ -205,7 +205,7 @@ public class ScenarioView implements View{
 				.stream()
 				.map(StateEvent::getEvent)
 				.map(Event::getEventType)
-				.filter(et -> et.equals(EventType.EXCEPTION)|| et.equals(EventType.FAILURE)).count();
+				.filter(et -> et.equals(EventType.EXCEPTION) || et.equals(EventType.FAILURE) || et.equals(EventType.ABNORMAL_TERMINATION) ).count();
 		
 		if (fails > 0) {			
 			scenarioStatisticsTable.updateRow(FAIL_EXEC, Arrays.asList(

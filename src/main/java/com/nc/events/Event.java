@@ -71,6 +71,7 @@ public class Event{
 		EXCEPTION("exception"),
 		UNSUPPORTED("unsupported"),
 		UNDEFINED("undefined"),
+		ABNORMAL_TERMINATION("abnormal_termination"),
 		ANY("any");
 		
 		private String name;

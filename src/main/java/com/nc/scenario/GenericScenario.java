@@ -6,9 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.naming.ConfigurationException;
+
 import org.apache.commons.lang.NotImplementedException;
 
 import com.nc.events.Event;
+import com.nc.events.Event.EventType;
 import com.nc.events.EventCollector;
 import com.nc.host.Host;
 import com.nc.inform.Informer;
@@ -56,9 +59,15 @@ public class GenericScenario implements Scenario {
 		while (true) {
 			try {
 				run();
-			} catch (Throwable e) {
+			}
+			catch (ConfigurationException ce) {
+				EventCollector.INSTANCE.scenarioFinish(id);
+				return;
+			}
+			catch (Throwable e) {
 				GlobalLogger.error("Uncaught exception in scenario \"" + id
 						+ "\". Scenario terminated abnormally", e);
+				EventCollector.INSTANCE.scenarioFinish(id);
 				return;
 			}
 
@@ -70,14 +79,24 @@ public class GenericScenario implements Scenario {
 		}
 	}
 	
-	private void run(){
+	private void run() throws ConfigurationException{
 		EventCollector.INSTANCE.scenarioStart(id);
 		
 		for(Host h: hosts){
 			State st = statesMap.get("initial");
 			do {
 				GlobalLogger.fine("Scenario: " + id + ". Host: " + h.getId() + ". State: " + st);
-				Event e = st.run(h);
+				Event e;
+
+				try{
+					e = st.run(h);
+				} catch (ConfigurationException ce) {
+					GlobalLogger.error("Configuration exception in scenario \"" + id
+							+ "\". Scenario terminated abnormally", ce);
+					EventCollector.INSTANCE.registerEvent(this.id, h, st, new Event(EventType.ABNORMAL_TERMINATION));
+					throw ce;
+				}
+				
 				EventCollector.INSTANCE.registerEvent(this.id, h, st, e);
 				
 				GlobalLogger.fine("Scenario: " + id + ". Host: " + h.getId() +  ". State: " + st.getType() + ". Event: " + e);

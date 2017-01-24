@@ -127,8 +127,35 @@ public class XmlConfig implements Config {
 						hb.setSshUsername(sshpMap.get("username"));
 						hb.setSshPassword(sshpMap.get("password"));
 						hb.setSshKeypath(sshpMap.get("keypath"));
-						break;					
-
+						break;
+					case "tags":
+						NodeList tagsp = n.getChildNodes().item(j).getChildNodes();
+						Map<String, String> tagMap = new HashMap<>();
+						for (int k = 0; k < tagsp.getLength(); k++) {
+							if (tagsp.item(k).getNodeName().equals("tag")) {
+								NodeList tagp = tagsp.item(k).getChildNodes();
+								String tagId = null;
+								String tagValue = null;
+								for (int m = 0; m < tagp.getLength(); m++) {
+									if (tagp.item(m).getNodeName().equals("id")) {
+										tagId = tagp.item(m).getTextContent();
+									}
+									if (tagp.item(m).getNodeName().equals("value")) {
+										tagValue = tagp.item(m).getTextContent();
+									}
+								}
+								if (tagMap.put(tagId, tagValue) != null) {
+									throw new ConfigurationException(
+											"Host id: '"
+													+ id
+													+ "'. Each tag should have unique id within a host. Tag id '"
+													+ tagId
+													+ "' is not unique.");
+								}
+							}
+						}	
+						hb.setTagMap(tagMap);
+						break;
 					}
 				}
 			}
@@ -385,15 +412,6 @@ public class XmlConfig implements Config {
 
 				case "commands":
 					List<String> commands = new ArrayList<>();
-					if (!stateType.equals(StateType.SSH)) {
-						throw new ConfigurationException(
-								"Scneario id: "
-										+ scId
-										+ ". Node name: "
-										+ st
-										+ ": commands parameter can only be a part of SSH state. Current state type : "
-										+ stateType);
-					}
 					for (int k = 0; k < ic.getChildNodes().getLength(); k++) {
 						if (ic.getChildNodes().item(k).getNodeName()
 								.equals("command")) {
@@ -432,7 +450,21 @@ public class XmlConfig implements Config {
 					+ ". Final state not found. "
 					+ "Each scenario should contain the <final/> state");
 		}
+		
+		List<String> orphanTransitions = states.stream().map(s -> s.getTransitions().values())
+				.flatMap(v -> v.stream())
+				.distinct()
+				.filter(tr -> !tr.equals("final") && !tr.equals("FIN"))
+				.filter(tr -> !seqs.contains(tr))
+				.collect(Collectors.toList());
+		
+		if (!orphanTransitions.isEmpty()) {
+			throw new ConfigurationException("Scneario id: " + scId
+					+ ". Transitions " + orphanTransitions.toString()
+					+ " are invalid. There are no corresponding states to go.");
+		}
 
+		
 		return states;
 	}
 		
