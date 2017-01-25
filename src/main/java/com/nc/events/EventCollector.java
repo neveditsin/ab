@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -33,31 +35,44 @@ public enum EventCollector {
 	private final Map<String, Multimap<Host, StateEvent>> em = new ConcurrentHashMap<>();
 	private final Set<String> scenariosToInform = new ConcurrentSkipListSet<>();
 	private final List<View> views = new ArrayList<>();
+	private final ExecutorService viewUpdaters = Executors.newSingleThreadExecutor();
+	
 	private static Multimap<Host, StateEvent> EMPTY_MMAP = LinkedListMultimap.<Host, StateEvent> create();
+	
 	
 	public void registerView(View v){
 		views.add(v);
 	}
 	
+	
+	/**
+	 * The registered event will cause updating of all registered views
+	 * where UpdateOn parameter is set to STATE_EXECUTED.
+	 * Events map for the current scenario will also be updated.
+	 * @param scenarioId - current scenario ID
+	 * @param host - current or last host. null will cause NPE
+	 * @param state - current or last state
+	 * @param event - event to be registered
+	 */
 	public void registerEvent(String scenarioId, Host host, State state, Event event){
-		//TODO consider more efficient concurrent collections?
-		em.putIfAbsent(scenarioId, Multimaps.newMultimap(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new));
+		em.putIfAbsent(scenarioId, Multimaps.newMultimap(new ConcurrentHashMap<>(), CopyOnWriteArrayList::new));		
 		em.get(scenarioId).put(host, new StateEvent(state, event));
 		
-		views.stream()
+		
+		viewUpdaters.execute(() -> views.stream()
 				.filter(v -> v.getUpdateCondition().equals(
 						UpdateOn.STATE_EXECUTED))
 				.forEach(
-						vw -> vw.updateView(scenarioId, LinkedListMultimap
-								.<Host, StateEvent> create(em.get(scenarioId))));
+						vw -> vw.updateView(scenarioId, em.get(scenarioId))));
+		
 
 	}
 	
 	public void scenarioStart(String scenarioId){
-		views.stream()
+		viewUpdaters.execute(() -> views.stream()
 				.filter(v -> v.getUpdateCondition().equals(
 						UpdateOn.SCENARIO_START))
-				.forEach(vw -> vw.updateView(scenarioId, EMPTY_MMAP));
+				.forEach(vw -> vw.updateView(scenarioId, EMPTY_MMAP)));
 	}
 	
 	public void onStateInform(String scenarioId, Host host) {
@@ -88,11 +103,14 @@ public enum EventCollector {
 						.getScenario(scenarioId).getInformers());
 			}			
 		}
+		
+		// make sure all views are updated correctly and then clear the
+		// corresponding events (multi)map
 		views.stream()
 				.filter(v -> v.getUpdateCondition().equals(
 						UpdateOn.SCENARIO_FINISH))
 				.forEach(vw -> vw.updateView(scenarioId, em.get(scenarioId)));
-		
+
 		em.get(scenarioId).clear();
 	}
 	

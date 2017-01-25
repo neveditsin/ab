@@ -8,6 +8,7 @@ import com.nc.action.WebChecker;
 import com.nc.events.Event;
 import com.nc.events.Event.EventType;
 import com.nc.host.Host;
+import com.nc.utils.Utils;
 
 class WebCheckState extends AbstractState {
 	@StateParameter(isOptional = true, xmlName = "must_contain")
@@ -30,9 +31,9 @@ class WebCheckState extends AbstractState {
 
 
 	@Override
-	public Event run(Host h) {
+	public Event run(Host h) throws ConfigurationException {
 		try{
-			WebChecker w = new WebChecker(h.getUrl(), mustContain);		
+			WebChecker w = new WebChecker(h.getUrl(), Utils.preprocessString(mustContain, h));		
 			return w.exec();
 		} catch (UnsupportedOperationException e){
 			return new Event(EventType.UNSUPPORTED, e.toString());

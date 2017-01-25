@@ -1,6 +1,7 @@
 package com.nc.host;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -124,10 +125,11 @@ public class GenericHost implements Host{
 			return this;
 		}
 		
-		public GenericHost getGenericHost(){
-			return new GenericHost(id, address, url, sshPort,
-					sshUsername, sshPassword, sshKeypath, tagMap);
-		}		
+		public GenericHost getGenericHost() {
+			return new GenericHost(id, address, url, sshPort, sshUsername,
+					sshPassword, sshKeypath, tagMap != null ? tagMap
+							: Collections.emptyMap());
+		}	
 	}	
 	
 	@Override

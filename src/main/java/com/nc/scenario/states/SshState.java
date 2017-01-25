@@ -41,14 +41,15 @@ class SshState extends AbstractState {
 	@Override
 	public Event run(Host h) throws ConfigurationException {
 		try{
-			Host host = overriddenHost != null? overriddenHost : h;
+			
 			
 			//preprocess commands
 			List<String> cmds = new ArrayList<>();
 			for(String cmd : commands){
-				cmds.add(Utils.preprocessString(cmd, host));
+				cmds.add(Utils.preprocessString(cmd, h));
 			}
 			
+			Host host = overriddenHost != null? overriddenHost : h;
 			Ssher ss = new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), false, host.getSshPawwsord(), cmds);
 			return ss.exec();
 		} catch (UnsupportedOperationException e){

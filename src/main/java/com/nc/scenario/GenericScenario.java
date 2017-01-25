@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import javax.naming.ConfigurationException;
@@ -26,7 +27,9 @@ public class GenericScenario implements Scenario {
 	private final List<Host> hosts;
 	private final List<Informer> informers;
 	private final int interval;
-	private final String id;	
+	private final String id;
+	private final AtomicReference<Host> lastHost = new AtomicReference<Host>();
+	private final AtomicReference<State> lastState = new AtomicReference<State>();
 	
 	public GenericScenario(String id, List<State> states, List<Host> hosts,
 			List<Informer> informers, int interval) {
@@ -39,7 +42,7 @@ public class GenericScenario implements Scenario {
 				}, HashMap::new));
 		this.hosts = hosts;
 		this.informers = informers;
-		this.interval = interval;		
+		this.interval = interval;
 		ScenarioPool.INSTANCE.putScenario(id, this);
 	}
 
@@ -59,14 +62,12 @@ public class GenericScenario implements Scenario {
 		while (true) {
 			try {
 				run();
-			}
-			catch (ConfigurationException ce) {
-				EventCollector.INSTANCE.scenarioFinish(id);
-				return;
-			}
-			catch (Throwable e) {
+			} catch (Throwable e) {
 				GlobalLogger.error("Uncaught exception in scenario \"" + id
 						+ "\". Scenario terminated abnormally", e);
+				EventCollector.INSTANCE.registerEvent(this.id, lastHost.get(),
+						lastState.get(), new Event(
+								EventType.ABNORMAL_TERMINATION));
 				EventCollector.INSTANCE.scenarioFinish(id);
 				return;
 			}
@@ -83,19 +84,15 @@ public class GenericScenario implements Scenario {
 		EventCollector.INSTANCE.scenarioStart(id);
 		
 		for(Host h: hosts){
+			lastHost.set(h);
 			State st = statesMap.get("initial");
 			do {
 				GlobalLogger.fine("Scenario: " + id + ". Host: " + h.getId() + ". State: " + st);
 				Event e;
+				lastState.set(st);
 
-				try{
-					e = st.run(h);
-				} catch (ConfigurationException ce) {
-					GlobalLogger.error("Configuration exception in scenario \"" + id
-							+ "\". Scenario terminated abnormally", ce);
-					EventCollector.INSTANCE.registerEvent(this.id, h, st, new Event(EventType.ABNORMAL_TERMINATION));
-					throw ce;
-				}
+				e = st.run(h);
+
 				
 				EventCollector.INSTANCE.registerEvent(this.id, h, st, e);
 				
