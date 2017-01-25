@@ -106,12 +106,14 @@ public enum EventCollector {
 		
 		// make sure all views are updated correctly and then clear the
 		// corresponding events (multi)map
-		views.stream()
-				.filter(v -> v.getUpdateCondition().equals(
-						UpdateOn.SCENARIO_FINISH))
-				.forEach(vw -> vw.updateView(scenarioId, em.get(scenarioId)));
-
-		em.get(scenarioId).clear();
+		viewUpdaters
+				.execute(() -> {
+					views.stream()
+							.filter(v -> v.getUpdateCondition().equals(UpdateOn.SCENARIO_FINISH))
+							.forEach(vw -> vw.updateView(scenarioId,
+											em.get(scenarioId)));
+					em.get(scenarioId).clear();
+				});
 	}
 	
 
