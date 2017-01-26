@@ -161,6 +161,17 @@
 		</xs:sequence>
 		<xs:attribute type="xs:string" name="seq" use="required"/>
 	</xs:complexType>
+	
+	<xs:complexType name="condition_checkType">
+		<xs:sequence>
+			<xs:choice minOccurs="1" maxOccurs="1">
+				<xs:element type="xs:string" name="event_info_matches" minOccurs="1" maxOccurs="1"/>
+				<xs:element type="xs:string" name="event_info_contains" minOccurs="1" maxOccurs="1"/>
+			</xs:choice>
+			<xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute type="xs:string" name="seq" use="required"/>
+	</xs:complexType>
 
 	<xs:complexType name="statesType">
 		<xs:sequence>
@@ -171,6 +182,7 @@
 				<xs:element type="informType" name="inform"/>      
 				<xs:element type="pauseType" name="pause"/> 
 				<xs:element type="local_execType" name="local_exec"/> 
+				<xs:element type="condition_checkType" name="condition_check"/> 
 			</xs:choice>	
 			<xs:element type="xs:string" name="final" minOccurs="1" maxOccurs="1"/>
 		</xs:sequence>

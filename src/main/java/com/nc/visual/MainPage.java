@@ -191,8 +191,7 @@ public class MainPage implements View{
 				.map(Event::getEventType)
 				.filter(et -> et.equals(EventType.EXCEPTION)
 						|| et.equals(EventType.FAILURE))
-				.collect(
-						Collectors.groupingBy(Function.identity(),
+				.collect(Collectors.groupingBy(Function.identity(),
 								Collectors.counting()))
 				.entrySet()
 				.stream()

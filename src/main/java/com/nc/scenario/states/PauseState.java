@@ -33,7 +33,7 @@ class PauseState extends AbstractState {
 	}
 
 	@Override
-	public Event run(Host h) {
+	public Event run(Host h, Event lastEvent) {
 		try {
 			Thread.sleep(pause);
 		} catch (InterruptedException e) {						

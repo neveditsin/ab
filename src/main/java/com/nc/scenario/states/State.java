@@ -11,5 +11,6 @@ public interface State {
 	StateType getType();
 	String getSeq();
 	Map<Event, String> getTransitions();
-	Event run(Host h) throws ConfigurationException;
+	Event run(Host h, Event lastEvent) throws ConfigurationException;
+
 }

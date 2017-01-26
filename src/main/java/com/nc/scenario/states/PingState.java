@@ -27,7 +27,7 @@ class PingState extends AbstractState{
 
 
 	@Override
-	public Event run(Host h) {
+	public Event run(Host h, Event lastEvent) {
 		try{
 			return new Pinger(h.getAddress()).exec();
 		} catch (UnsupportedOperationException e){

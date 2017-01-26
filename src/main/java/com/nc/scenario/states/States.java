@@ -37,6 +37,7 @@ public class States {
 		} catch (InstantiationException | IllegalAccessException
 				| NoSuchMethodException | SecurityException
 				| IllegalArgumentException | InvocationTargetException e) {
+			e.printStackTrace();
 			throw new ConfigurationException(e.toString());
 		}	
 		

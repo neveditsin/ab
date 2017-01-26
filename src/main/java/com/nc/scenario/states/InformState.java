@@ -23,7 +23,7 @@ class InformState extends AbstractState {
 	}
 
 	@Override
-	public Event run(Host h) {
+	public Event run(Host h, Event lastEvent) {
 		EventCollector.INSTANCE.onStateInform(super.getScenarioId(), h);	
 		return new Event(EventType.SUCCESS);
 	}

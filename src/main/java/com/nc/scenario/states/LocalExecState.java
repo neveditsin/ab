@@ -43,7 +43,7 @@ class LocalExecState extends AbstractState {
 	}
 
 	@Override
-	public Event run(Host h) {
+	public Event run(Host h, Event lastEvent) {
 		return new LocalExec(command, timeout, forceTerminateIn, isDaemon).exec();
 	}
 

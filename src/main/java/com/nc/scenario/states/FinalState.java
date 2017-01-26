@@ -31,7 +31,7 @@ public class FinalState implements State {
 	}
 
 	@Override
-	public Event run(Host h) {
+	public Event run(Host h, Event lastEvent) {
 		throw new UnsupportedOperationException("final state is not runnable");
 	}
 	

@@ -39,7 +39,7 @@ class SshState extends AbstractState {
 	}
 
 	@Override
-	public Event run(Host h) throws ConfigurationException {
+	public Event run(Host h, Event lastEvent) throws ConfigurationException {
 		try{
 			
 			

@@ -30,6 +30,7 @@ public class GenericScenario implements Scenario {
 	private final String id;
 	private final AtomicReference<Host> lastHost = new AtomicReference<Host>();
 	private final AtomicReference<State> lastState = new AtomicReference<State>();
+	private final AtomicReference<Event> lastEvent = new AtomicReference<Event>();
 	
 	public GenericScenario(String id, List<State> states, List<Host> hosts,
 			List<Informer> informers, int interval) {
@@ -91,17 +92,14 @@ public class GenericScenario implements Scenario {
 				Event e;
 				lastState.set(st);
 
-				e = st.run(h);
+				e = st.run(h, lastEvent.get());
 
-				
+				lastEvent.set(e);			
 				EventCollector.INSTANCE.registerEvent(this.id, h, st, e);
 				
 				GlobalLogger.fine("Scenario: " + id + ". Host: " + h.getId() +  ". State: " + st.getType() + ". Event: " + e);
 				String target = st.getTransitions().get(e);
-				if(target == null){
-					//try to get transition for event without tag
-					target = st.getTransitions().get(e.getUntaggedEvent());
-				}
+
 				//if there are no targets
 				if(target == null){
 					GlobalLogger.warning(

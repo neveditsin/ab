@@ -10,6 +10,7 @@ public enum StateType {
 	WEBCHECK("webcheck", WebCheckState.class),
 	INFORM("inform", InformState.class),
 	LOCAL_EXEC("local_exec", LocalExecState.class),
+	CONDITION_CHECK("condition_check", ConditionCheckState.class),
 	FINAL("final", FinalState.class),
 	UNDEFINED("undefined", null);
 

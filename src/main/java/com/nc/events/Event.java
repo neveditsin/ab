@@ -5,26 +5,26 @@ import java.util.Map;
 
 public class Event{
 	private final EventType et;
-	private final String tag;
+	private final String info;
 	
-	public Event(EventType et, String tag) {
+	public Event(EventType et, String info) {
 		super();
 		this.et = et;
-		this.tag = tag;
-	}
-	
-	public Event getUntaggedEvent(){
-		return new Event(et);
+		this.info = info;
 	}
 	
 	public EventType getEventType(){
 		return et;
 	}
 	
+	public String getEventInfo(){
+		return info;
+	}
+	
 	public Event(EventType et) {
 		super();
 		this.et = et;
-		this.tag = null;
+		this.info = null;
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class Event{
 	
 	@Override
 	public String toString() {
-		return et.toString() + (tag != null? "[" +  tag + "]" : "");
+		return et.toString() + (info != null? "[" +  info + "]" : "");
 	}
 
 
@@ -47,19 +47,8 @@ public class Event{
 		if (getClass() != obj.getClass())
 			return false;
 		Event other = (Event) obj;
-		if (et != other.et)
-			return false;
 		
-		if (tag != null && other.tag != null){
-			if (!(tag.contains(other.tag) || other.tag.contains(tag)))
-				return false;
-		} else if (tag == null && other.tag == null){
-			return true;
-		} else {
-			return false;
-		}
-		
-		return true;
+		return et.equals(other.et);
 	}
 
 
