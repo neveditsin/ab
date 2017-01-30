@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
 
 import javax.naming.ConfigurationException;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.nc.events.Event;
 import com.nc.events.Event.EventType;
 import com.nc.events.EventCollector;
@@ -59,27 +57,19 @@ public class GenericScenario implements Scenario {
 	
 
 	@Override
-	public void start() {
-		while (true) {
-			try {
-				run();
-			} catch (Throwable e) {
-				GlobalLogger.error("Uncaught exception in scenario \"" + id
-						+ "\". Scenario terminated abnormally", e);
-				EventCollector.INSTANCE.registerEvent(this.id, lastHost.get(),
-						lastState.get(), new Event(
-								EventType.ABNORMAL_TERMINATION));
-				EventCollector.INSTANCE.scenarioFinish(id);
-				return;
-			}
-
-			try {
-				Thread.sleep(1000 * 60 * interval);
-			} catch (InterruptedException e) {
-				GlobalLogger.warning(e.toString());
-			}
+	public void start() throws Throwable {
+		try {
+			run();
+		} catch (Throwable e) {
+			GlobalLogger.error("Uncaught exception in scenario \"" + id
+					+ "\". Scenario terminated abnormally", e);
+			EventCollector.INSTANCE.registerEvent(this.id, lastHost.get(),
+					lastState.get(), new Event(EventType.ABNORMAL_TERMINATION));
+			EventCollector.INSTANCE.scenarioFinish(id);
+			throw e;
 		}
-	}
+	}		
+	
 	
 	private void run() throws ConfigurationException{
 		EventCollector.INSTANCE.scenarioStart(id);
@@ -116,11 +106,6 @@ public class GenericScenario implements Scenario {
 		EventCollector.INSTANCE.scenarioFinish(id);
 	}
 
-	@Override
-	public void stop() {
-		throw new NotImplementedException();
-		
-	}
 	
 	@Override
 	public String toString(){
@@ -141,6 +126,7 @@ public class GenericScenario implements Scenario {
 	public int getInterval() {
 		return interval;
 	}
+
 
 
 
