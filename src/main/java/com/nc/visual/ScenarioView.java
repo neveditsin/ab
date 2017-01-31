@@ -158,7 +158,7 @@ public class ScenarioView implements View{
 		
 		scenarioStatisticsTable.addRow(INTERVAL, 
 				Arrays.asList(HtmlElements.newSimpleElementFromString(INTERVAL),
-						HtmlElements.newSimpleElementFromString(Integer.toString(sc.getInterval()))));
+						HtmlElements.newSimpleElementFromString(sc.getSchedule().getHumanReadable())));
 		
 		scenarioStatisticsTable.addRow(N_EXEC, 
 				Arrays.asList(HtmlElements.newSimpleElementFromString(N_EXEC),

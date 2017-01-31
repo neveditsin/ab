@@ -24,14 +24,14 @@ public class GenericScenario implements Scenario {
 	private final List<State> states;
 	private final List<Host> hosts;
 	private final List<Informer> informers;
-	private final int interval;
+	private final ScenarioSchedule schedule;
 	private final String id;
 	private final AtomicReference<Host> lastHost = new AtomicReference<Host>();
 	private final AtomicReference<State> lastState = new AtomicReference<State>();
 	private final AtomicReference<Event> lastEvent = new AtomicReference<Event>();
 	
 	public GenericScenario(String id, List<State> states, List<Host> hosts,
-			List<Informer> informers, int interval) {
+			List<Informer> informers, ScenarioSchedule schedule) {
 		super();
 		this.id = id;
 		this.states = states;
@@ -41,7 +41,8 @@ public class GenericScenario implements Scenario {
 				}, HashMap::new));
 		this.hosts = hosts;
 		this.informers = informers;
-		this.interval = interval;
+		this.schedule = schedule;
+
 		ScenarioPool.INSTANCE.putScenario(id, this);
 	}
 
@@ -123,8 +124,8 @@ public class GenericScenario implements Scenario {
 	}
 
 	@Override
-	public int getInterval() {
-		return interval;
+	public ScenarioSchedule getSchedule() {
+		return schedule;
 	}
 
 

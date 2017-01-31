@@ -13,7 +13,8 @@ public interface Scenario{
 	List<Host> getHosts();
 	List<Informer> getInformers();
 	List<State> getStates();
-	int getInterval();
+	ScenarioSchedule getSchedule();
 	String getId();
 	void start() throws Throwable;
+	
 }

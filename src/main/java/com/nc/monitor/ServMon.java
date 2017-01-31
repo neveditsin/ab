@@ -11,9 +11,6 @@ import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.SimpleScheduleBuilder;
-import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 import org.xml.sax.SAXException;
 
@@ -86,18 +83,11 @@ public class ServMon {
 					.usingJobData("id", sc.getId())
 					.build();
 
-			Trigger trigger = TriggerBuilder
-					.newTrigger()					
-					.startNow()
-					.withSchedule(
-							SimpleScheduleBuilder.simpleSchedule()
-									.withIntervalInMinutes(sc.getInterval())
-									.repeatForever()).build();
-
-			scheduler.scheduleJob(job, trigger);
+			scheduler.scheduleJob(job, sc.getSchedule().getTriggerBuilder().build());
 		}
 		
 	}
+	
 
 
 }

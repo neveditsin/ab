@@ -32,6 +32,7 @@ import com.nc.inform.InformUnit;
 import com.nc.inform.Informer;
 import com.nc.scenario.GenericScenario;
 import com.nc.scenario.Scenario;
+import com.nc.scenario.ScenarioSchedule;
 import com.nc.scenario.states.FinalState;
 import com.nc.scenario.states.State;
 import com.nc.scenario.states.StateType;
@@ -255,7 +256,23 @@ public class XmlConfig implements Config {
 			if(idm.add(scId) != true){
 				throw new ConfigurationException("Each scenario should have unique id. Id '" + scId + "' is not unique.");
 			}
-			int interval = Integer.parseInt(n.getAttributes().getNamedItem("interval").getTextContent());
+			
+			Node interval = n.getAttributes().getNamedItem("interval");
+			Node cron = n.getAttributes().getNamedItem("cron");
+			
+			if((interval != null) == (cron != null)){
+				throw new ConfigurationException(
+						"Scenario '"
+								+ scId
+								+ "': either 'interval' or 'cron' attribute should present. "
+								+ "Both attributes are not allowed.");
+			}
+			
+			ScenarioSchedule sched = interval != null ? ScenarioSchedule
+					.newInterval(interval.getTextContent()) : ScenarioSchedule
+					.newCronExpression(cron.getTextContent());
+			
+			
 			List<State> scStates = new ArrayList<>();
 			List<Host> scHosts = new ArrayList<>();
 			List<Informer> scInformers = new ArrayList<>();
@@ -277,7 +294,7 @@ public class XmlConfig implements Config {
 					break;
 				}
 			}
-			l.add(new GenericScenario(scId, scStates, scHosts, scInformers, interval));
+			l.add(new GenericScenario(scId, scStates, scHosts, scInformers, sched));
 		}
 		return l;
 	}

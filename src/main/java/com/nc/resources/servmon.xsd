@@ -208,7 +208,15 @@
 			<xs:element type="informer_idsType" name="informer_ids" minOccurs="1" maxOccurs="1"/>
 		</xs:sequence>
 		<xs:attribute type="xs:string" name="id" use="required"/>
-		<xs:attribute type="xs:unsignedInt" name="interval" use="required"/>
+		
+		<xs:attribute name="interval" use="optional">
+         <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{1,10}(MS|S|M|H)"/>
+          </xs:restriction>
+         </xs:simpleType>
+		</xs:attribute>
+		<xs:attribute type="xs:string" name="cron" use="optional"/>
 	</xs:complexType>
 	<xs:complexType name="scenariosType">
 		<xs:sequence>
