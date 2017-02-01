@@ -65,7 +65,7 @@ public abstract class ScenarioSchedule {
 			super(ScheduleType.INTERVAL);
 			this.itu = itu;
 			this.interval = interval;
-			this.humanReadable = "Every " + interval + " " + itu.toString();
+			this.humanReadable = "Every " + interval + " " + itu.toString() + (interval > 1? "s" : "");
 			
 			SimpleScheduleBuilder sb = null;
 			switch (itu) {
@@ -175,10 +175,10 @@ public abstract class ScenarioSchedule {
 	}
 	
 	public static enum IntervalTimeUnit {
-		MILLISECONDS("MS", "milliseconds"), 
-		SECONDS("S", "seconds"), 
-		MINUTES("M", "minutes"),
-		HOURS("H", "hours");
+		MILLISECONDS("MS", "millisecond"), 
+		SECONDS("S", "second"), 
+		MINUTES("M", "minute"),
+		HOURS("H", "hour");
 		
 		private static final Map<String, IntervalTimeUnit> MAP = new HashMap<>();
 		static {

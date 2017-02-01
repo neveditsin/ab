@@ -9,11 +9,13 @@ import com.nc.events.Event.EventType;
 
 public class Pinger implements Action{	
 	private final String address;
+	private final int timeout;
 	
 
-	public Pinger(String address) {
+	public Pinger(String address, int timeout) {
 		super();
 		this.address = address;
+		this.timeout = timeout;
 	}
 
 	@Override
@@ -25,7 +27,7 @@ public class Pinger implements Action{
 			return new Event(EventType.EXCEPTION, e.toString());
 		}
 		try {
-			if(!inet.isReachable(5000)){
+			if(!inet.isReachable(timeout > 0? timeout : 5000)){
 				return new Event(EventType.FAILURE, address + " is unreachable");
 			} else {
 				return new Event(EventType.SUCCESS);

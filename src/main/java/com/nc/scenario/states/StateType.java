@@ -5,12 +5,13 @@ import java.util.Map;
 
 public enum StateType {
 	SSH("ssh", SshState.class),
-	PING("ping", PingState.class),
+	IS_REACHABLE("is_reachable", PingState.class),
 	PAUSE("pause",  PauseState.class),
 	WEBCHECK("webcheck", WebCheckState.class),
 	INFORM("inform", InformState.class),
 	LOCAL_EXEC("local_exec", LocalExecState.class),
 	CONDITION_CHECK("condition_check", ConditionCheckState.class),
+	PORT_CHECK("port_check", PortCheckState.class),
 	FINAL("final", FinalState.class),
 	UNDEFINED("undefined", null);
 
