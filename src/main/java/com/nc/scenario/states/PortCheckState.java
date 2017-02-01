@@ -35,6 +35,10 @@ public class PortCheckState extends AbstractState {
 				throw new ConfigurationException("State '" + seq
 						+ "': timeout is invalid");
 			}
+			if (timeout < 0) {
+				throw new ConfigurationException("State '" + seq
+						+ "': timeout cannot be negative");
+			}
 
 		} else {
 			timeout = 5000;

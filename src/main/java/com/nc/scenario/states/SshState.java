@@ -20,6 +20,10 @@ class SshState extends AbstractState {
 	@StateParameter(isOptional = true, xmlName = "host_id")
 	private final Host overriddenHost;
 	
+	
+	@StateParameter(isOptional = true, xmlName = "timeout")
+	private final long timeout;
+	
 	@SuppressWarnings("unchecked")
 	SshState(String seq, Map<Event, String> transitions,
 			String scenarioId, Map<String, Object> parameters)
@@ -28,7 +32,22 @@ class SshState extends AbstractState {
 		
 		commands = (List<String>) parameters.get("commands");
 		
-		overriddenHost = (Host) parameters.get("host_id");		
+		overriddenHost = (Host) parameters.get("host_id");
+		
+		if (parameters.get("timeout") != null) {
+			try {
+				timeout = Long.parseLong((String) parameters.get("timeout"));
+			} catch (NumberFormatException e) {
+				throw new ConfigurationException("State '" + seq
+						+ "': timeout is invalid");
+			}
+			if (timeout < 0) {
+				throw new ConfigurationException("State '" + seq
+						+ "': timeout cannot be negative");
+			}
+		} else {
+			timeout = -1;
+		}
 	}
 
 
@@ -50,7 +69,10 @@ class SshState extends AbstractState {
 			}
 			
 			Host host = overriddenHost != null? overriddenHost : h;
-			Ssher ss = new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), false, host.getSshPawwsord(), cmds);
+			
+			Ssher ss = new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), false, host.getSshPawwsord(), cmds, timeout);
+			
+			
 			return ss.exec();
 		} catch (UnsupportedOperationException e){
 			return new Event(EventType.UNSUPPORTED, e.toString());

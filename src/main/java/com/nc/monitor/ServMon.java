@@ -57,6 +57,7 @@ public class ServMon {
 		int httpPort = GlobalConfig.getConfig().getHttpPort();
 		if (httpPort > 0) {
 			HttpUi.getInstance().start(httpPort);
+			System.out.println("You can check the status of running scenarios here: http://localhost:" + httpPort);
 		}		
 		
 		

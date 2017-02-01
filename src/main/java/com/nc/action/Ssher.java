@@ -6,23 +6,34 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.nc.events.Event;
 import com.nc.events.Event.EventType;
+import com.nc.utils.GlobalLogger;
 import com.jcraft.jsch.*;
 
-public class Ssher implements Action {
+public class Ssher implements Action, Callable<Event> {
 	
 	private final String address;
 	private final int port;
+	private final long timeout;
 	private final boolean keyAuth;
 	private final String user;
 	private final String auth;
 	private final List<String> commands;
-	
+	private final ExecutorService es;
+	private final AtomicBoolean interrupt = new AtomicBoolean(false);
 	
 	public Ssher(String address, int port, String user, boolean useKeyAuth, String auth,
-			List<String> commands) {
+			List<String> commands, long timeout) {
 		super();
 		this.address = address;
 		this.port = port;
@@ -30,12 +41,42 @@ public class Ssher implements Action {
 		this.auth = auth;
 		this.keyAuth = useKeyAuth;
 		this.commands = commands;
+		this.timeout = timeout;
+		if (timeout > 0) {
+			this.es = Executors.newSingleThreadExecutor();
+		} else {
+			this.es = null;
+		}
 	}
 
 
 	
 	@Override
 	public Event exec() {
+		if (timeout > 0) {
+			Future<Event> fe = es.submit(this);
+			try {
+				Event e = fe.get(timeout, TimeUnit.MILLISECONDS);
+				es.shutdownNow();
+				return e;
+			} catch (TimeoutException e) {
+				this.interrupt.set(true);
+				fe.cancel(true);
+				es.shutdownNow();
+				return new Event(EventType.FAILURE, "timeout");
+			} catch (InterruptedException e) {
+				GlobalLogger.info(e.toString());
+				return new Event(EventType.EXCEPTION, e.toString());
+			} catch (ExecutionException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			return call();
+		}
+	}
+	
+	@Override
+	public Event call() {
 		try {
 			SshResult sr = execSsh(user, auth, address,	port, commands, keyAuth);
 			Ret lastCommand = sr.getCommandResults().get(
@@ -51,11 +92,10 @@ public class Ssher implements Action {
 		} catch (JSchException | IOException e) {
 			return new Event(EventType.EXCEPTION, e.toString());
 		}
-
 	}
 	
 	
-	private static SshResult execSsh(String user, String auth, String host,
+	private SshResult execSsh(String user, String auth, String host,
 			int port, List<String> commands, boolean useKeyAuth) throws JSchException, IOException {		
 		JSch jsch = new JSch();
 		Session session = null;
@@ -85,7 +125,7 @@ public class Ssher implements Action {
 	}
 	
 	
-	private static void batchExec(List<String> commands, List<Ret> results, Session session) throws JSchException, IOException{
+	private void batchExec(List<String> commands, List<Ret> results, Session session) throws JSchException, IOException{
 		for (String com : commands) {
 			Ret r = _exec(session, com);
 			results.add(r);
@@ -95,7 +135,7 @@ public class Ssher implements Action {
 		}
 	}
 	
-	private static Ret _exec(Session session, String command) throws JSchException, IOException {
+	private Ret _exec(Session session, String command) throws JSchException, IOException {
 		Channel channel = session.openChannel("exec");
 		((ChannelExec) channel).setCommand(command);
 		channel.setInputStream(null);
@@ -106,7 +146,7 @@ public class Ssher implements Action {
 
 		byte[] tmp = new byte[1024];
 		StringBuilder sb = new StringBuilder();
-		while (true) {
+		while (interrupt.get() == false) {
 			while (in.available() > 0) {
 				int i = in.read(tmp, 0, 1024);
 				if (i < 0)
@@ -123,6 +163,7 @@ public class Ssher implements Action {
 			} catch (Exception ee) {
 			}
 		}
+		return new Ret(command, -1, sb.toString(), "timeout");
 	}
 	
 	private static class Ret{
@@ -176,5 +217,6 @@ public class Ssher implements Action {
 		}
 		
 	}
+
 	
 }
