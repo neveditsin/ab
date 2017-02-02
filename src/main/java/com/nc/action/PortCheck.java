@@ -36,7 +36,7 @@ public class PortCheck implements Action {
 		} catch (SocketTimeoutException e) {
 			return new Event(EventType.FAILURE, "timeout");
 		} catch (IOException e) {
-			return new Event(EventType.FAILURE, "connection error: " + e.toString());
+			return new Event(EventType.FAILURE, "connection error: " + e.getMessage());
 		} catch (IllegalArgumentException e) {
 			return new Event(EventType.EXCEPTION, e.toString());
 		}

@@ -34,13 +34,14 @@ public class States {
 					String.class, Map.class);
 			return (State) cons.newInstance(seq, transitions, scenarioId,
 					parameters);
+		} catch (InvocationTargetException e){
+			throw new ConfigurationException(e.getCause().getMessage());
 		} catch (InstantiationException | IllegalAccessException
 				| NoSuchMethodException | SecurityException
-				| IllegalArgumentException | InvocationTargetException e) {
+				| IllegalArgumentException e) {
 			e.printStackTrace();
-			throw new ConfigurationException(e.toString());
-		}	
-		
+			throw new RuntimeException(e);
+		}		
 
 	}
 	

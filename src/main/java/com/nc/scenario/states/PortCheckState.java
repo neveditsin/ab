@@ -24,7 +24,7 @@ public class PortCheckState extends AbstractState {
 		port = Integer.parseInt((String) parameters.get("port"));
 		
 		if (port < 1 || port > 65535) {
-			throw new ConfigurationException("State: '" + seq
+			throw new ConfigurationException("Scenario '" + scenarioId + "'. State '" + seq
 					+ "': invalid port number: must be in range [1; 65535]");
 		}
 		
@@ -32,11 +32,11 @@ public class PortCheckState extends AbstractState {
 			try {
 				timeout = Integer.parseInt((String) parameters.get("timeout"));
 			} catch (NumberFormatException e) {
-				throw new ConfigurationException("State '" + seq
+				throw new ConfigurationException("Scenario '" + scenarioId + "'. State '" + seq
 						+ "': timeout is invalid");
 			}
 			if (timeout < 0) {
-				throw new ConfigurationException("State '" + seq
+				throw new ConfigurationException("Scenario '" + scenarioId + "'. State '" + seq
 						+ "': timeout cannot be negative");
 			}
 

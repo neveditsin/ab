@@ -32,11 +32,11 @@ class LocalExecState extends AbstractState {
 			try {
 				timeout = Long.parseLong((String) parameters.get("timeout"));
 			} catch (NumberFormatException e) {
-				throw new ConfigurationException("State '" + seq
+				throw new ConfigurationException("Scenario '" + scenarioId + "'. State '" + seq
 						+ "': timeout is invalid");
 			}
 			if (timeout < 0) {
-				throw new ConfigurationException("State '" + seq
+				throw new ConfigurationException("Scenario '" + scenarioId + "'. State '" + seq
 						+ "': timeout cannot be negative");
 			}
 		} else {

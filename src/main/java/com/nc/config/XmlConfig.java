@@ -28,7 +28,6 @@ import com.nc.host.Host;
 import com.nc.inform.ConfigurableEmailInformer;
 import com.nc.inform.ConsoleInformer;
 import com.nc.inform.EmailInformers;
-import com.nc.inform.InformUnit;
 import com.nc.inform.Informer;
 import com.nc.scenario.GenericScenario;
 import com.nc.scenario.Scenario;
@@ -45,7 +44,6 @@ public class XmlConfig implements Config {
 	private final List<Scenario> scenarios;
 	private final List<Host> hosts;
 	private final int httpPort;
-	private final InformUnit iu;
 	
 	public XmlConfig(String path) throws XPathExpressionException, ConfigurationException, SAXException, IOException {
 		super();
@@ -58,7 +56,6 @@ public class XmlConfig implements Config {
 		String htp = (String)xpath.evaluate("/servmoncfg/http_port", inputSource, XPathConstants.STRING);
 		httpPort = Integer.parseInt(htp);
 		
-		iu = InformUnit.fromString((String)xpath.evaluate("/servmoncfg/inform_unit", inputSource, XPathConstants.STRING));
 
 		hosts = parseHosts((NodeList) xpath.evaluate("/servmoncfg/hosts/host", inputSource, XPathConstants.NODESET));
 //		System.out.println(hosts);
@@ -80,11 +77,6 @@ public class XmlConfig implements Config {
 	}
 
 
-
-	@Override
-	public InformUnit getInformUnit() {
-		return iu;
-	}
 
 
 

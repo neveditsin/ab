@@ -9,7 +9,10 @@ public class ConsoleInformer extends AbstractInformer{
 
 	@Override
 	public void inform(Info message) throws Exception {
+		System.out.println("Short description:");
 		System.out.println(message.getShortMessage());
+		System.out.println();
+		System.out.println("Full description:");
 		System.out.println(message.getFullDescription());
 	}
 

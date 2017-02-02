@@ -139,6 +139,7 @@
 
 	<xs:complexType name="informType">
 		<xs:sequence>
+			<xs:element type="xs:string" name="event_filter" minOccurs="0" maxOccurs="1"/>			
 			<xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute type="xs:string" name="seq" use="required"/>
@@ -245,7 +246,6 @@
 			<xs:element type="hostsType" name="hosts" minOccurs="1" maxOccurs="1"/>
 			<xs:element type="informersType" name="informers" minOccurs="1" maxOccurs="1"/>
 			<xs:element type="scenariosType" name="scenarios" minOccurs="1" maxOccurs="1"/>
-			<xs:element type="xs:string" name="inform_unit" minOccurs="1" maxOccurs="1" />
 			<xs:element type="xs:unsignedShort" name="http_port" minOccurs="0" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>

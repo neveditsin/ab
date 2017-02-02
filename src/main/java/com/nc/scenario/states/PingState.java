@@ -24,11 +24,11 @@ class PingState extends AbstractState{
 			try {
 				timeout = Integer.parseInt((String) parameters.get("timeout"));
 			} catch (NumberFormatException e) {
-				throw new ConfigurationException("State '" + seq
+				throw new ConfigurationException("Scenario '" + scenarioId + "'. State '" + seq
 						+ "': timeout is invalid");
 			}
 			if (timeout < 0) {
-				throw new ConfigurationException("State '" + seq
+				throw new ConfigurationException("Scenario '" + scenarioId + "'. State '" + seq
 						+ "': timeout cannot be negative");
 			}
 		} else {
