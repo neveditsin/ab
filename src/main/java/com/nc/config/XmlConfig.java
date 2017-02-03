@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javax.naming.ConfigurationException;
@@ -44,6 +45,8 @@ public class XmlConfig implements Config {
 	private final List<Scenario> scenarios;
 	private final List<Host> hosts;
 	private final int httpPort;
+	private final Level loggingLevel;
+	private final String loggingFilePath;
 	
 	public XmlConfig(String path) throws XPathExpressionException, ConfigurationException, SAXException, IOException {
 		super();
@@ -55,7 +58,14 @@ public class XmlConfig implements Config {
 		
 		String htp = (String)xpath.evaluate("/servmoncfg/http_port", inputSource, XPathConstants.STRING);
 		httpPort = Integer.parseInt(htp);
+		if (httpPort < 1 || httpPort > 65535) {
+			throw new ConfigurationException("Invalid http_port number: must be in range [1; 65535]");
+		}
 		
+		String ll = (String)xpath.evaluate("/servmoncfg/logging_level", inputSource, XPathConstants.STRING);
+		loggingLevel = ll.length() > 0? Level.parse(ll) : Level.FINE;
+		
+		loggingFilePath = (String)xpath.evaluate("/servmoncfg/log_file_path", inputSource, XPathConstants.STRING);
 
 		hosts = parseHosts((NodeList) xpath.evaluate("/servmoncfg/hosts/host", inputSource, XPathConstants.NODESET));
 //		System.out.println(hosts);
@@ -486,6 +496,15 @@ public class XmlConfig implements Config {
 		return new ArrayList<>(hosts);
 	}
 	
+	@Override
+	public Level getLoggingLevel() {
+		return loggingLevel;
+	}
+
+	@Override
+	public String getLoggingFilePath() {
+		return loggingFilePath;
+	}
 
 
 }

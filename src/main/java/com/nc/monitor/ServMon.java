@@ -28,7 +28,7 @@ import com.nc.visual.ScenarioView;
 
 
 public class ServMon {
-	public static void main(String[] args) throws SecurityException, IOException, SchedulerException {
+	public static void main(String[] args) throws SecurityException, IOException, SchedulerException, ConfigurationException {
 		if(args.length != 1){
 			System.out.println("Invalid arguments. Usage: java -jar servmon path_to_xml_configuration_file");
 			System.out.println("Program terminated");
@@ -51,7 +51,7 @@ public class ServMon {
 			return;
 		} 
 		
-		GlobalLogger.init();
+		GlobalLogger.init(GlobalConfig.getConfig().getLoggingLevel(), GlobalConfig.getConfig().getLoggingFilePath());
 		
 	
 		int httpPort = GlobalConfig.getConfig().getHttpPort();

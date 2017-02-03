@@ -243,10 +243,22 @@
 
 	<xs:complexType name="servmoncfgType">
 		<xs:sequence>
-			<xs:element type="hostsType" name="hosts" minOccurs="1" maxOccurs="1"/>
-			<xs:element type="informersType" name="informers" minOccurs="1" maxOccurs="1"/>
-			<xs:element type="scenariosType" name="scenarios" minOccurs="1" maxOccurs="1"/>
-			<xs:element type="xs:unsignedShort" name="http_port" minOccurs="0" maxOccurs="1"/>
+			<xs:element type="hostsType" name="hosts" minOccurs="1"
+				maxOccurs="1" />
+			<xs:element type="informersType" name="informers"
+				minOccurs="1" maxOccurs="1" />
+			<xs:element type="scenariosType" name="scenarios"
+				minOccurs="1" maxOccurs="1" />
+			<xs:element name="logging_level" minOccurs="0" maxOccurs="1">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:pattern value="SEVERE|WARNING|INFO|FINE" />
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:element>
+			<xs:element type="xs:string" name="log_file_path" minOccurs="0" maxOccurs="1"/>
+			<xs:element type="xs:unsignedShort" name="http_port"
+				minOccurs="0" maxOccurs="1" />
 		</xs:sequence>
 	</xs:complexType>
 

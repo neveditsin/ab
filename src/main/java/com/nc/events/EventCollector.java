@@ -86,8 +86,6 @@ public enum EventCollector {
 								p -> em.get(scenarioId).get(p))),
 				ScenarioPool.INSTANCE.getScenario(scenarioId).getInformers(),
 				eventFilter);
-		em.get(scenarioId).get(host).clear();
-
 	}
 	
 	public void scenarioFinish(String scenarioId) {
