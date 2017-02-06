@@ -53,7 +53,7 @@ public class MainPage implements View{
 				"responstable",
 				".responstable {\r\n"
 						+ "  margin: 1em 0;\r\n"
-						+ "  width: 50%;\r\n"
+						+ "  width: 75%;\r\n"
 						+ "  overflow: hidden;\r\n"
 						+ "  background: #FFF;\r\n"
 						+ "  color: #024457;\r\n"
@@ -141,7 +141,7 @@ public class MainPage implements View{
 		scenarioTable = HtmlTable.newUnorderedHtmlTable("scenarioTable",
 				Arrays.asList(new String[] { "Scenario", "Last Status", "Hosts" }),
 				tableStyle);
-		handler = new PlainHtmlHandler(init(), "TinyMon");
+		handler = new PlainHtmlHandler(init(), "Admin Buddy");
 		HttpUi.getInstance().setPage("/", handler);		
 	}
 	

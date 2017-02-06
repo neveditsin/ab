@@ -28,7 +28,7 @@ public class ScenarioView implements View{
 			"responstable",
 			".responstable {\r\n"
 					+ "  margin: 1em 0;\r\n"
-					+ "  width: 33%;\r\n"
+					+ "  width: 75%;\r\n"
 					+ "  overflow: hidden;\r\n"
 					+ "  background: #FFF;\r\n"
 					+ "  color: #024457;\r\n"
