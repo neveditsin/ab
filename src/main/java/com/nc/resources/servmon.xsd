@@ -139,7 +139,8 @@
 
 	<xs:complexType name="informType">
 		<xs:sequence>
-			<xs:element type="xs:string" name="event_filter" minOccurs="0" maxOccurs="1"/>			
+			<xs:element type="xs:string" name="custom_message" minOccurs="0" maxOccurs="1"/>	
+			<xs:element type="xs:string" name="event_filter" minOccurs="0" maxOccurs="1"/>
 			<xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute type="xs:string" name="seq" use="required"/>

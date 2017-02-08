@@ -14,6 +14,10 @@ import com.nc.host.Host;
 class InformState extends AbstractState {
 	@StateParameter(isOptional = true, xmlName = "event_filter")
 	private final EnumSet<EventType> eventFilter;
+	
+	@StateParameter(isOptional = true, xmlName = "custom_message")
+	private final String customMessage;
+	
 	private static final Map<String, EventType> shortNameToEventType;
 	static{
 		shortNameToEventType = new HashMap<>();
@@ -28,6 +32,9 @@ class InformState extends AbstractState {
 			throws ConfigurationException {
 		super(seq, transitions, scenarioId, parameters);
 		
+		
+		customMessage = (String) parameters.get("custom_message");
+				
 		String evts = ((String) parameters.getOrDefault("event_filter", "")).toUpperCase();
 		
 		if (evts.length() > 0){
@@ -52,6 +59,7 @@ class InformState extends AbstractState {
 			eventFilter = EnumSet.allOf(EventType.class);
 		}
 		
+		
 	}
 
 	@Override
@@ -61,7 +69,7 @@ class InformState extends AbstractState {
 
 	@Override
 	public Event run(Host h, Event lastEvent) {
-		EventCollector.INSTANCE.onStateInform(super.getScenarioId(), h, eventFilter);	
+		EventCollector.INSTANCE.onStateInform(super.getScenarioId(), h, eventFilter, customMessage);	
 		return new Event(EventType.SUCCESS);
 	}
 

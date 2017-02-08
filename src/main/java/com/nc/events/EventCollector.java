@@ -73,7 +73,7 @@ public enum EventCollector {
 	}
 	
 	public void onStateInform(String scenarioId, Host host,
-			EnumSet<EventType> eventFilter) {
+			EnumSet<EventType> eventFilter, String customMessage) {
 		// inform immediately
 		inform(scenarioId, em
 				.get(scenarioId)
@@ -85,7 +85,7 @@ public enum EventCollector {
 						Collectors.toMap(Function.identity(),
 								p -> em.get(scenarioId).get(p))),
 				ScenarioPool.INSTANCE.getScenario(scenarioId).getInformers(),
-				eventFilter);
+				eventFilter, customMessage);
 	}
 	
 	public void scenarioFinish(String scenarioId) {
@@ -103,12 +103,12 @@ public enum EventCollector {
 	
 
 	public void inform(String scenarioId, Map<Host, Collection<StateEvent>> execEvents,
-			List<Informer> informers, EnumSet<EventType> eventFilter) {
+			List<Informer> informers, EnumSet<EventType> eventFilter, String customMessage) {
 		if (execEvents.isEmpty() || informers.isEmpty()) {
 			return;
 		}
 
-		Info msg = getReport(scenarioId, execEvents, eventFilter);
+		Info msg = getReport(scenarioId, execEvents, eventFilter, customMessage);
 
 		for (Informer i : informers) {
 			try {
@@ -121,7 +121,7 @@ public enum EventCollector {
 	}
 
 	
-	private Info getReport(String scenarioId, Map<Host,Collection<StateEvent>> execEvents, EnumSet<EventType> eventFilter) {
+	private Info getReport(String scenarioId, Map<Host,Collection<StateEvent>> execEvents, EnumSet<EventType> eventFilter, String customMessage) {
 		Info ret = new Info();
 
 		StringBuilder fullDesc = new StringBuilder();
@@ -138,6 +138,10 @@ public enum EventCollector {
 		
 		shortDesc.append("Scenario: '").append(scenarioId).append("'. Hosts: ");
 		fullDesc.append("Scenario: '").append(scenarioId).append("';\n");
+		
+		if (customMessage != null){
+			fullDesc.append("Message: '").append(customMessage).append("';\n");
+		}
 		
 		for (Host h : execEvents.keySet()) {
 			shortDesc.append("'").append(h.getId()).append("' ");
