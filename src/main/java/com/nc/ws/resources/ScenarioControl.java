@@ -10,6 +10,7 @@ import org.quartz.SchedulerException;
 
 import com.nc.events.EventCollector;
 import com.nc.events.GlobalEvent;
+import com.nc.scenario.Scenario;
 import com.nc.scenario.ScenarioPool;
 import com.nc.scenario.ScenarioScheduler;
 
@@ -17,9 +18,9 @@ import com.nc.scenario.ScenarioScheduler;
 public class ScenarioControl {
 	//TODO ret values should be refactored
     @GET
-    @Path("stop")
+    @Path("unschedule")
     @Produces(MediaType.TEXT_PLAIN)
-	public String localExec(@MatrixParam("scenario_id") String scenarioId) {
+	public String unschedule(@MatrixParam("scenario_id") String scenarioId) {
 		if (scenarioId == null) {
 			for(String scId : ScenarioPool.INSTANCE.getScenarioIds()){
 				try {
@@ -40,6 +41,37 @@ public class ScenarioControl {
 			ScenarioScheduler.INSTANCE.unscheduleScenario(scenarioId);
 			EventCollector.INSTANCE.registerGlobalEvent(scenarioId, GlobalEvent.SCENARIO_UNSCHEDULED);
 			return "scenario unscheduled";
+		} catch (SchedulerException e){
+			return "ERROR: " + e.toString();
+		}		 
+	}
+    
+    
+	//TODO ret values should be refactored
+    @GET
+    @Path("schedule")
+    @Produces(MediaType.TEXT_PLAIN)
+	public String schedule(@MatrixParam("scenario_id") String scenarioId) {
+		if (scenarioId == null) {
+			for(Scenario sc : ScenarioPool.INSTANCE.getScenarios()){
+				try {
+					ScenarioScheduler.INSTANCE.scheduleScenario(sc);
+					EventCollector.INSTANCE.registerGlobalEvent(sc.getId(), GlobalEvent.SCENARIO_SCHEDULED);
+				} catch (SchedulerException e) {
+					return "ERROR: " + e.toString();
+				}
+			}
+			return "all scenarios scheduled";
+		}
+
+		if (ScenarioPool.INSTANCE.getScenario(scenarioId) == null) {
+			return String.format("ERROR: scenario '%s' not found", scenarioId);
+		}
+		
+		try{
+			ScenarioScheduler.INSTANCE.scheduleScenario(ScenarioPool.INSTANCE.getScenario(scenarioId));
+			EventCollector.INSTANCE.registerGlobalEvent(scenarioId, GlobalEvent.SCENARIO_SCHEDULED);
+			return "scenario scheduled";
 		} catch (SchedulerException e){
 			return "ERROR: " + e.toString();
 		}		 

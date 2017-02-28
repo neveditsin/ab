@@ -29,13 +29,17 @@ public enum ScenarioScheduler {
 	}
 	
 	
-	public void scheduleScenario(Scenario sc) throws SchedulerException{
+	public boolean scheduleScenario(Scenario sc) throws SchedulerException{
 		JobDetail job = JobBuilder.newJob(ScenarioJob.class)
 				.withIdentity(sc.getId(), SCENARIO_IDENTITY_GROUP)
 				.usingJobData(JOB_DATA_SCENARIO_ID, sc.getId())
 				.build();
-
-		scheduler.scheduleJob(job, sc.getSchedule().getTriggerBuilder().build());
+		
+		if (!scheduler.checkExists(job.getKey())){
+			scheduler.scheduleJob(job, sc.getSchedule().getTriggerBuilder().build());
+			return true;
+		}
+		return false;
 	}
 	
 	public boolean unscheduleScenario(String scenarioId) throws SchedulerException{		

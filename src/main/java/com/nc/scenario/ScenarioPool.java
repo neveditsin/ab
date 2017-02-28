@@ -31,6 +31,9 @@ public enum ScenarioPool {
 		return ImmutableSet.copyOf(scenarioMap.keySet());
 	}
 	
+	public Set<Scenario> getScenarios(){
+		return ImmutableSet.copyOf(scenarioMap.values());
+	}
 
 	
 	
