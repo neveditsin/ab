@@ -5,8 +5,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+
 
 
 
@@ -16,6 +19,7 @@ import com.google.common.collect.Multimap;
 import com.nc.config.GlobalConfig;
 import com.nc.events.Event;
 import com.nc.events.Event.EventType;
+import com.nc.events.GlobalEvent;
 import com.nc.events.StateEvent;
 import com.nc.host.Host;
 import com.nc.http.HttpUi;
@@ -35,6 +39,7 @@ public class MainPage implements View{
 	private final List<Scenario> scenarios = GlobalConfig.getConfig().getScenarios();
 	private final Map<String, List<HtmlLink>> hosts;
 	private final HtmlTable scenarioTable;
+	private final AtomicReference<Boolean> ignoreUpdates = new AtomicReference<Boolean>(false);
 	
 	{
 		hosts = scenarios.stream().collect(
@@ -139,7 +144,7 @@ public class MainPage implements View{
 	
 	public MainPage(){
 		scenarioTable = HtmlTable.newUnorderedHtmlTable("scenarioTable",
-				Arrays.asList(new String[] { "Scenario", "Last Status", "Hosts" }),
+				Arrays.asList(new String[] { "Scenario", "Status", "Hosts" }),
 				tableStyle);
 		handler = new PlainHtmlHandler(init(), "Admin Buddy");
 		HttpUi.getInstance().setPage("/", handler);		
@@ -147,6 +152,8 @@ public class MainPage implements View{
 	
 	@Override
 	public void updateView(String scenarioId, Multimap<Host, StateEvent> hse){
+		if (ignoreUpdates.get() == true)
+			return;
 		update(scenarioId, hse);
 		handler.update();
 	}
@@ -160,7 +167,7 @@ public class MainPage implements View{
 		for (Scenario sc : scenarios) {
 			scenarioTable.addRow(sc.getId(), Arrays.asList(
 					new HtmlLink(sc.getId(), "scenario_" + sc.getId()),
-					HtmlElements.newSimpleElementFromString("SCHEDULED"),
+					HtmlElements.newSimpleElementFromString("Loaded"),
 					new HtmlListOfElements(hosts.get(sc.getId()))));
 		}
 		l.add(scenarioTable);
@@ -210,6 +217,21 @@ public class MainPage implements View{
 	@Override
 	public UpdateOn getUpdateCondition() {
 		return UpdateOn.STATE_EXECUTED;
+	}
+
+	@Override
+	public void updateViewWithGlobalEvent(String scenarioId, GlobalEvent ge) {
+		if(ge.equals(GlobalEvent.SCENARIO_UNSCHEDULED)){
+			ignoreUpdates.set(true);
+		} else if(ge.equals(GlobalEvent.SCENARIO_SCHEDULED)){
+			ignoreUpdates.set(false);
+		}
+		
+		scenarioTable.updateRow(scenarioId, Arrays.asList(
+				new HtmlLink(scenarioId, "scenario_" + scenarioId),
+				HtmlElements.newSimpleElementFromString(ge.toString()),
+				new HtmlListOfElements(hosts.get(scenarioId))));
+		handler.update();		
 	}
 
 

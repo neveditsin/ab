@@ -5,6 +5,7 @@ import java.util.List;
 
 
 
+
 import com.nc.host.Host;
 import com.nc.inform.Informer;
 import com.nc.scenario.states.State;
@@ -15,6 +16,5 @@ public interface Scenario{
 	List<State> getStates();
 	ScenarioSchedule getSchedule();
 	String getId();
-	void start() throws Throwable;
-	
+	void run() throws Throwable;
 }

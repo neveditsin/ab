@@ -15,8 +15,8 @@ public class ScenarioJob implements Job{
 			throws JobExecutionException {
 		String scId = null;
 		Scenario sc = null;
-		if (jec.getJobDetail().getJobDataMap().containsKey("id")) {
-			scId = jec.getJobDetail().getJobDataMap().getString("id");
+		if (jec.getJobDetail().getJobDataMap().containsKey(ScenarioScheduler.JOB_DATA_SCENARIO_ID)) {
+			scId = jec.getJobDetail().getJobDataMap().getString(ScenarioScheduler.JOB_DATA_SCENARIO_ID);
 			sc = ScenarioPool.INSTANCE.getScenario(scId);
 		} else {
 			GlobalLogger.error("Scenario '" + scId
@@ -34,7 +34,7 @@ public class ScenarioJob implements Job{
 		
 		
 		try {
-			sc.start();
+			sc.run();
 		} catch (Throwable e) {
 			try {
 				if (false == jec.getScheduler().deleteJob(

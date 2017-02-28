@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Multimap;
 import com.nc.events.Event;
+import com.nc.events.GlobalEvent;
 import com.nc.events.StateEvent;
 import com.nc.events.Event.EventType;
 import com.nc.host.Host;
@@ -222,6 +223,13 @@ public class ScenarioView implements View{
 	@Override
 	public UpdateOn getUpdateCondition() {
 		return UpdateOn.SCENARIO_FINISH;
+	}
+
+
+	@Override
+	public void updateViewWithGlobalEvent(String scenarioId, GlobalEvent ge) {
+		// TODO Auto-generated method stub
+		
 	}
 
 

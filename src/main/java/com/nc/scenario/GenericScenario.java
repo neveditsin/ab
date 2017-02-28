@@ -58,13 +58,13 @@ public class GenericScenario implements Scenario {
 	
 
 	@Override
-	public void start() throws Throwable {
+	public void run() throws Throwable {
 		try {
-			run();
+			_run();
 		} catch (Throwable e) {
 			GlobalLogger.error("Uncaught exception in scenario \"" + id
 					+ "\". Scenario terminated abnormally", e);
-			EventCollector.INSTANCE.registerEvent(this.id, lastHost.get(),
+			EventCollector.INSTANCE.registerStateEvent(this.id, lastHost.get(),
 					lastState.get(), new Event(EventType.ABNORMAL_TERMINATION));
 			EventCollector.INSTANCE.scenarioFinish(id);
 			throw e;
@@ -72,7 +72,7 @@ public class GenericScenario implements Scenario {
 	}		
 	
 	
-	private void run() throws ConfigurationException{
+	private void _run() throws ConfigurationException{
 		EventCollector.INSTANCE.scenarioStart(id);
 		
 		for(Host h: hosts){
@@ -86,7 +86,7 @@ public class GenericScenario implements Scenario {
 				e = st.run(h, lastEvent.get());
 
 				lastEvent.set(e);			
-				EventCollector.INSTANCE.registerEvent(this.id, h, st, e);
+				EventCollector.INSTANCE.registerStateEvent(this.id, h, st, e);
 				
 				GlobalLogger.fine("Scenario: " + id + ". Host: " + h.getId() +  ". State: " + st.getType() + ". Event: " + e);
 				String target = st.getTransitions().get(e);
@@ -127,6 +127,8 @@ public class GenericScenario implements Scenario {
 	public ScenarioSchedule getSchedule() {
 		return schedule;
 	}
+
+
 
 
 

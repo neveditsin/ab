@@ -60,8 +60,7 @@ public class Event{
 		EXCEPTION("exception"),
 		UNSUPPORTED("unsupported"),
 		UNDEFINED("undefined"),
-		ABNORMAL_TERMINATION("abnormal_termination"),
-		ANY("any");
+		ABNORMAL_TERMINATION("abnormal_termination");
 		
 		private String name;
 		private static final Map<String, EventType> MAP = new HashMap<>();

@@ -12,7 +12,7 @@ import com.nc.host.Host;
 public class FinalState implements State {
 	private static Map<Event, String> transitions = new HashMap<>();
 	static {
-		transitions.put(new Event(EventType.ANY), "FIN");
+		transitions.put(new Event(EventType.SUCCESS), "FIN");
 	}
 
 	@Override

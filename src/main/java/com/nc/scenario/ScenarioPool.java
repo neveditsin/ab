@@ -17,6 +17,12 @@ public enum ScenarioPool {
 
 	}
 	
+	
+	
+	/**
+	 * @param scenarioId
+	 * @return Scenario object or null if Scenario with the given scenarioId is not found.
+	 */
 	public Scenario getScenario(String scenarioId){
 		return scenarioMap.get(scenarioId);
 	}

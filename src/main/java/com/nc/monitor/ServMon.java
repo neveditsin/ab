@@ -7,23 +7,21 @@ import java.util.List;
 import javax.naming.ConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.impl.StdSchedulerFactory;
 import org.xml.sax.SAXException;
 
 import com.nc.config.GlobalConfig;
 import com.nc.config.XmlConfig;
 import com.nc.events.EventCollector;
+import com.nc.events.GlobalEvent;
 import com.nc.http.HttpUi;
 import com.nc.scenario.Scenario;
-import com.nc.scenario.ScenarioJob;
+import com.nc.scenario.ScenarioScheduler;
 import com.nc.utils.GlobalLogger;
 import com.nc.visual.HostView;
 import com.nc.visual.MainPage;
 import com.nc.visual.ScenarioView;
+import com.nc.ws.WsServer;
 
 
 
@@ -60,7 +58,8 @@ public class ServMon {
 			System.out.println("You can check the status of running scenarios here: http://localhost:" + httpPort);
 		}		
 		
-		
+		//TODO from config
+		WsServer.startServer();
 		
 		EventCollector.INSTANCE.registerView(new MainPage());
 
@@ -73,20 +72,13 @@ public class ServMon {
 	}	
 	
 	
-	private static void start(List<Scenario> scenarios) throws SchedulerException {
-		Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-		scheduler.start();
-		
-		
+	private static void start(List<Scenario> scenarios)
+			throws SchedulerException {
 		for (Scenario sc : scenarios) {
-			JobDetail job = JobBuilder.newJob(ScenarioJob.class)
-					.withIdentity(sc.getId(), "scenarios")
-					.usingJobData("id", sc.getId())
-					.build();
-
-			scheduler.scheduleJob(job, sc.getSchedule().getTriggerBuilder().build());
+			ScenarioScheduler.INSTANCE.scheduleScenario(sc);
+			EventCollector.INSTANCE.registerGlobalEvent(sc.getId(),
+					GlobalEvent.SCENARIO_SCHEDULED);
 		}
-		
 	}
 	
 
