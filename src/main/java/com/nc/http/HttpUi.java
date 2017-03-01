@@ -31,7 +31,8 @@ public class HttpUi {
 	public void start(int port) {
 		try {
 			PORT = port;
-			server = HttpServer.createSimpleServer(null, PORT);
+			server = HttpServer.createSimpleServer(null, "0.0.0.0", PORT);
+			
 			server.start();
 		} catch (IOException e) {
 			//TODO log failure
@@ -46,7 +47,7 @@ public class HttpUi {
 	
 	public void restart() throws IOException{
 		stop();
-		server = HttpServer.createSimpleServer("/", PORT);
+		server = HttpServer.createSimpleServer(null, "0.0.0.0", PORT);
 		start(PORT);		
 	}
 	

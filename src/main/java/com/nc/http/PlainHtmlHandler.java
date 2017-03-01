@@ -11,6 +11,7 @@ import org.glassfish.grizzly.http.server.Response;
 
 import com.nc.http.html.HtmlCssStyle;
 import com.nc.http.html.HtmlElement;
+import com.nc.utils.GlobalLogger;
 
 public class PlainHtmlHandler extends HttpHandler{
 
@@ -29,6 +30,8 @@ public class PlainHtmlHandler extends HttpHandler{
 
 	@Override
 	public void service(Request request, Response resp) throws Exception {
+		GlobalLogger.info(String.format("Http requst: ip '%s', port '%s'",
+				request.getRemoteAddr(), request.getRemotePort()));
 		resp.setContentType("text/html");
 		resp.setContentLength(response.length());
 		resp.getWriter().write(response);
