@@ -1,9 +1,12 @@
 package com.nc.http;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 
-import com.sun.net.httpserver.*;
+
+import org.glassfish.grizzly.http.server.HttpHandler;
+import org.glassfish.grizzly.http.server.HttpServer;
+
+
 
 public class HttpUi {
 	
@@ -20,42 +23,31 @@ public class HttpUi {
 	private HttpUi() {
 	}
 	
-	public synchronized void updatePage(String key, HttpHandler context){
-		server.removeContext(key);
-		server.createContext(key, context);
-	}
 	
 	public synchronized void setPage(String key, HttpHandler context){
-		server.createContext(key, context);
+		server.getServerConfiguration().addHttpHandler(context, key);
 	}
 	
-
-
-
 	public void start(int port) {
 		try {
 			PORT = port;
-			server = HttpServer.create(new InetSocketAddress(port), 0);
+			server = HttpServer.createSimpleServer(null, PORT);
+			server.start();
 		} catch (IOException e) {
+			//TODO log failure
 			e.printStackTrace();
-		}
-		server.setExecutor(null);
-		server.start();
+		}		
 	}
 	
+
 	public void stop() {
-		server.stop(0);
+		server.shutdownNow();
 	}
 	
-	public void restart(){
+	public void restart() throws IOException{
 		stop();
-		try {
-			server = HttpServer.create(new InetSocketAddress(PORT), 0);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		start(PORT);
+		server = HttpServer.createSimpleServer("/", PORT);
+		start(PORT);		
 	}
 	
 

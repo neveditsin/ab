@@ -1,18 +1,18 @@
 package com.nc.http;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.glassfish.grizzly.http.server.HttpHandler;
+import org.glassfish.grizzly.http.server.Request;
+import org.glassfish.grizzly.http.server.Response;
+
 import com.nc.http.html.HtmlCssStyle;
 import com.nc.http.html.HtmlElement;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
-public class PlainHtmlHandler implements HttpHandler{
+public class PlainHtmlHandler extends HttpHandler{
 
 	private String response; 
 	private String title; 
@@ -28,13 +28,12 @@ public class PlainHtmlHandler implements HttpHandler{
 
 
 	@Override
-	public void handle(HttpExchange he) throws IOException {
-		he.sendResponseHeaders(200, response.length());
-		try (OutputStream os = he.getResponseBody()) {
-			os.write(response.getBytes());
-		}
-
-	}
+	public void service(Request request, Response resp) throws Exception {
+		resp.setContentType("text/html");
+		resp.setContentLength(response.length());
+		resp.getWriter().write(response);
+		
+	}	
 	
 	
 	/**
@@ -195,7 +194,8 @@ public class PlainHtmlHandler implements HttpHandler{
 		resp.append("</html>\r\n");
 		
 		return resp.toString();
-	}	
+	}
+
 
 
 }

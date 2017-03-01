@@ -24,8 +24,9 @@ public class ScenarioControl {
 		if (scenarioId == null) {
 			for(String scId : ScenarioPool.INSTANCE.getScenarioIds()){
 				try {
-					ScenarioScheduler.INSTANCE.unscheduleScenario(scId);
-					EventCollector.INSTANCE.registerGlobalEvent(scId, GlobalEvent.SCENARIO_UNSCHEDULED);
+					if (ScenarioScheduler.INSTANCE.unscheduleScenario(scId) == true){
+						EventCollector.INSTANCE.registerGlobalEvent(scId, GlobalEvent.SCENARIO_UNSCHEDULED);
+					}					
 				} catch (SchedulerException e) {
 					return "ERROR: " + e.toString();
 				}
@@ -38,8 +39,9 @@ public class ScenarioControl {
 		}
 		
 		try{
-			ScenarioScheduler.INSTANCE.unscheduleScenario(scenarioId);
-			EventCollector.INSTANCE.registerGlobalEvent(scenarioId, GlobalEvent.SCENARIO_UNSCHEDULED);
+			if (ScenarioScheduler.INSTANCE.unscheduleScenario(scenarioId) == true){
+				EventCollector.INSTANCE.registerGlobalEvent(scenarioId, GlobalEvent.SCENARIO_UNSCHEDULED);
+			}			
 			return "scenario unscheduled";
 		} catch (SchedulerException e){
 			return "ERROR: " + e.toString();
@@ -55,8 +57,9 @@ public class ScenarioControl {
 		if (scenarioId == null) {
 			for(Scenario sc : ScenarioPool.INSTANCE.getScenarios()){
 				try {
-					ScenarioScheduler.INSTANCE.scheduleScenario(sc);
-					EventCollector.INSTANCE.registerGlobalEvent(sc.getId(), GlobalEvent.SCENARIO_SCHEDULED);
+					if (ScenarioScheduler.INSTANCE.scheduleScenario(sc) == true){
+						EventCollector.INSTANCE.registerGlobalEvent(sc.getId(), GlobalEvent.SCENARIO_SCHEDULED);
+					}					
 				} catch (SchedulerException e) {
 					return "ERROR: " + e.toString();
 				}
@@ -69,8 +72,10 @@ public class ScenarioControl {
 		}
 		
 		try{
-			ScenarioScheduler.INSTANCE.scheduleScenario(ScenarioPool.INSTANCE.getScenario(scenarioId));
-			EventCollector.INSTANCE.registerGlobalEvent(scenarioId, GlobalEvent.SCENARIO_SCHEDULED);
+			if (ScenarioScheduler.INSTANCE.scheduleScenario(ScenarioPool.INSTANCE.getScenario(scenarioId)) == true){
+				EventCollector.INSTANCE.registerGlobalEvent(scenarioId, GlobalEvent.SCENARIO_SCHEDULED);
+			}
+			
 			return "scenario scheduled";
 		} catch (SchedulerException e){
 			return "ERROR: " + e.toString();
