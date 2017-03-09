@@ -2,6 +2,7 @@ package com.nc.config;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +24,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.cronutils.utils.StringUtils;
 import com.nc.events.Event;
 import com.nc.host.GenericHost;
 import com.nc.host.Host;
@@ -45,8 +47,13 @@ public class XmlConfig implements Config {
 	private final List<Scenario> scenarios;
 	private final List<Host> hosts;
 	private final int httpPort;
+	private final int wsPort;
 	private final Level loggingLevel;
 	private final String loggingFilePath;
+	private final boolean isWsPublic;
+	private final String wsUsername;
+	private final String wsPassword;
+	private final String authString;
 	
 	public XmlConfig(String path) throws XPathExpressionException, ConfigurationException, SAXException, IOException {
 		super();
@@ -56,25 +63,46 @@ public class XmlConfig implements Config {
 		XPath xpath = XPathFactory.newInstance().newXPath();
 		InputSource inputSource = new InputSource(path);
 		
-		String htp = (String)xpath.evaluate("/servmoncfg/http_port", inputSource, XPathConstants.STRING);
-		httpPort = Integer.parseInt(htp);
+		String htp = (String)xpath.evaluate("/cfg/http_port", inputSource, XPathConstants.STRING);
+		httpPort = !StringUtils.isEmpty(htp)? Integer.parseInt(htp) : 0;
 		if (httpPort < 1 || httpPort > 65535) {
 			throw new ConfigurationException("Invalid http_port number: must be in range [1; 65535]");
 		}
 		
-		String ll = (String)xpath.evaluate("/servmoncfg/logging_level", inputSource, XPathConstants.STRING);
+		String wsp = (String)xpath.evaluate("/cfg/ws_port", inputSource, XPathConstants.STRING);
+		wsPort = !StringUtils.isEmpty(wsp)? Integer.parseInt(wsp) : 0;
+		if (httpPort < 1 || httpPort > 65535 || wsPort == httpPort) {
+			throw new ConfigurationException("Invalid ws_port number: must be in range [1; 65535] and be different from httpPort");
+		}
+		
+		String iswspub = (String)xpath.evaluate("/cfg/is_ws_public", inputSource, XPathConstants.STRING);
+		isWsPublic = Boolean.parseBoolean(iswspub);
+		
+		wsUsername = (String)xpath.evaluate("/cfg/ws_username", inputSource, XPathConstants.STRING);
+		wsPassword = (String)xpath.evaluate("/cfg/ws_password", inputSource, XPathConstants.STRING);
+		
+		if (isWsPublic) {
+			if (StringUtils.isEmpty(wsUsername) || StringUtils.isEmpty(wsPassword)) {
+				throw new ConfigurationException(
+						"Invalid configuration: ws_username and ws_password must not be empty for public web service");
+			}
+		}
+		
+		authString = new String(Base64.getEncoder().encode(String.format("%s:%s", wsUsername, wsPassword).getBytes()));
+		
+		String ll = (String)xpath.evaluate("/cfg/logging_level", inputSource, XPathConstants.STRING);
 		loggingLevel = ll.length() > 0? Level.parse(ll) : Level.FINE;
 		
-		loggingFilePath = (String)xpath.evaluate("/servmoncfg/log_file_path", inputSource, XPathConstants.STRING);
+		loggingFilePath = (String)xpath.evaluate("/cfg/log_file_path", inputSource, XPathConstants.STRING); 
 
-		hosts = parseHosts((NodeList) xpath.evaluate("/servmoncfg/hosts/host", inputSource, XPathConstants.NODESET));
+		hosts = parseHosts((NodeList) xpath.evaluate("/cfg/hosts/host", inputSource, XPathConstants.NODESET));
 //		System.out.println(hosts);
 		
-		List<Informer> informers = parseInformers((NodeList) xpath.evaluate("/servmoncfg/informers/informer", inputSource, XPathConstants.NODESET));
+		List<Informer> informers = parseInformers((NodeList) xpath.evaluate("/cfg/informers/informer", inputSource, XPathConstants.NODESET));
 //		System.out.println(informers);
 
 		
-		scenarios = parseScenarios((NodeList) xpath.evaluate("/servmoncfg/scenarios/scenario", inputSource, XPathConstants.NODESET), hosts, informers);
+		scenarios = parseScenarios((NodeList) xpath.evaluate("/cfg/scenarios/scenario", inputSource, XPathConstants.NODESET), hosts, informers);
 		
 	}
 
@@ -504,6 +532,36 @@ public class XmlConfig implements Config {
 	@Override
 	public String getLoggingFilePath() {
 		return loggingFilePath;
+	}
+
+
+	@Override
+	public String getWsUsername() {
+		return wsUsername;
+	}
+
+
+	@Override
+	public String getWsPassword() {
+		return wsPassword;
+	}
+
+
+	@Override
+	public int getWsPort() {
+		return wsPort;
+	}
+
+
+	@Override
+	public boolean isWsPublic() {
+		return isWsPublic;
+	}
+
+
+	@Override
+	public String getAuthString() {
+		return authString;
 	}
 
 

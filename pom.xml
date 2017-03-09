@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.nc</groupId>
-	<artifactId>posimon</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>adminsbuddy</artifactId>
+	<version>0.8</version>
 	<packaging>jar</packaging>
 
-	<name>posimon</name>
+	<name>adminsbuddy</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>

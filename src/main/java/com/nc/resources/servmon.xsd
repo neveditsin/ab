@@ -1,5 +1,5 @@
 <xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-	<xs:element name="servmoncfg" type="servmoncfgType"/>
+	<xs:element name="cfg" type="cfgType"/>
 
 	<!--hosts section begin-->
 	<xs:complexType name="ssh_paramsType">
@@ -242,7 +242,7 @@
 
 
 
-	<xs:complexType name="servmoncfgType">
+	<xs:complexType name="cfgType">
 		<xs:sequence>
 			<xs:element type="hostsType" name="hosts" minOccurs="1"
 				maxOccurs="1" />
@@ -259,6 +259,14 @@
 			</xs:element>
 			<xs:element type="xs:string" name="log_file_path" minOccurs="0" maxOccurs="1"/>
 			<xs:element type="xs:unsignedShort" name="http_port"
+				minOccurs="0" maxOccurs="1" />
+			<xs:element type="xs:unsignedShort" name="ws_port"
+				minOccurs="0" maxOccurs="1" />
+			<xs:element type="xs:string" name="is_ws_public"
+				minOccurs="0" maxOccurs="1" />
+			<xs:element type="xs:string" name="ws_username"
+				minOccurs="0" maxOccurs="1" />			
+			<xs:element type="xs:string" name="ws_password"
 				minOccurs="0" maxOccurs="1" />
 		</xs:sequence>
 	</xs:complexType>

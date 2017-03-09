@@ -1,4 +1,4 @@
-package com.nc.monitor;
+package com.nc.main;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +25,7 @@ import com.nc.ws.WsServer;
 
 
 
-public class ServMon {
+public class AdminsBuddy {
 	public static void main(String[] args) throws SecurityException, IOException, SchedulerException, ConfigurationException {
 		if(args.length != 1){
 			System.out.println("Invalid arguments. Usage: java -jar servmon path_to_xml_configuration_file");
@@ -58,8 +58,16 @@ public class ServMon {
 			System.out.println("You can check the status of running scenarios here: http://localhost:" + httpPort);
 		}		
 		
-		//TODO from config
-		WsServer.startServer();
+	
+		int wsPort = GlobalConfig.getConfig().getWsPort();
+		if (wsPort > 0) {
+			WsServer.startServer(wsPort, GlobalConfig.getConfig().isWsPublic());
+			System.out.println(
+					String.format("%s web service started at port %d",
+					GlobalConfig.getConfig().isWsPublic() ? "Public" : "Local",
+					wsPort));
+		}
+
 		
 		EventCollector.INSTANCE.registerView(new MainPage());
 
