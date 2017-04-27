@@ -28,7 +28,7 @@ import com.nc.ws.WsServer;
 public class AdminsBuddy {
 	public static void main(String[] args) throws SecurityException, IOException, SchedulerException, ConfigurationException {
 		if(args.length != 1){
-			System.out.println("Invalid arguments. Usage: java -jar servmon path_to_xml_configuration_file");
+			System.out.println("Invalid arguments. Usage: java -jar adminsbuddy-0.8.jar path_to_xml_configuration_file");
 			System.out.println("Program terminated");
 			return;
 		}
@@ -39,7 +39,6 @@ public class AdminsBuddy {
 			return;
 		}
 		
-		System.out.println("Config path: "+ args[0]);
 		
 		try {
 			GlobalConfig.setConfig(new XmlConfig(args[0]));

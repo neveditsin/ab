@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.naming.ConfigurationException;
 
+import com.cronutils.utils.StringUtils;
 import com.nc.action.Ssher;
 import com.nc.events.Event;
 import com.nc.events.Event.EventType;
@@ -70,7 +71,8 @@ class SshState extends AbstractState {
 			
 			Host host = overriddenHost != null? overriddenHost : h;
 			
-			Ssher ss = new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), false, host.getSshPawwsord(), cmds, timeout);
+			Ssher ss = StringUtils.isEmpty(host.getSshKeypath())? new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), false, host.getSshPawwsord(), cmds, timeout) :
+				new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), true, host.getSshKeypath(), cmds, timeout);
 			
 			
 			return ss.exec();

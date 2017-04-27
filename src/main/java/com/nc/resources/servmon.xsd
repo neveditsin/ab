@@ -34,7 +34,7 @@
 	
 	<xs:complexType name="hostType">
 		<xs:sequence>
-			<xs:element type="xs:string" name="address" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:string" name="address" minOccurs="0" maxOccurs="1"/>
 			<xs:element type="xs:anyURI" name="url" minOccurs="0" maxOccurs="1"/>
 			<xs:element type="ssh_paramsType" name="ssh_params" minOccurs="0" maxOccurs="1"/>
 			<xs:element type="tagsType" name="tags" minOccurs="0" maxOccurs="1"/>
