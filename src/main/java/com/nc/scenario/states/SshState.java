@@ -68,10 +68,10 @@ class SshState extends AbstractState {
 			for(String cmd : commands){
 				cmds.add(Utils.preprocessString(cmd, h));
 			}
-			
+
 			Host host = overriddenHost != null? overriddenHost : h;
 			
-			Ssher ss = StringUtils.isEmpty(host.getSshKeypath())? new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), false, host.getSshPawwsord(), cmds, timeout) :
+			Ssher ss = !host.isKeyAuthUsed()? new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), false, host.getSshPawwsord(), cmds, timeout) :
 				new Ssher(host.getAddress(), host.getSshPort(), host.getSshUsername(), true, host.getSshKeypath(), cmds, timeout);
 			
 			

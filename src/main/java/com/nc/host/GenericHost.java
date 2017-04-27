@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.cronutils.utils.StringUtils;
+
 public class GenericHost implements Host{
 	
 	private final String id;
@@ -204,6 +206,11 @@ public class GenericHost implements Host{
 	@Override
 	public Map<String, String> getTagMap() {
 		return tagMap;
+	}
+
+	@Override
+	public boolean isKeyAuthUsed() {
+		return !StringUtils.isEmpty(this.sshKeypath);
 	}
 
 

@@ -12,4 +12,5 @@ public interface Host {
 	String getSshKeypath();
 	Map<String, Object> getParams();
 	Map<String, String> getTagMap();
+	boolean isKeyAuthUsed();
 }
