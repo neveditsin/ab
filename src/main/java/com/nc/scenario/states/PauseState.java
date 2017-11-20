@@ -4,10 +4,16 @@ import java.util.Map;
 
 import javax.naming.ConfigurationException;
 
+import org.quartz.SchedulerException;
+
 import com.nc.events.Event;
 import com.nc.events.Event.EventType;
 import com.nc.host.Host;
+import com.nc.scenario.ScenarioPool;
+import com.nc.scenario.ScenarioScheduler;
 
+
+//NEEDS REVISION. DO NOT USE FOR NOW 
 class PauseState extends AbstractState {
 	
 	@StateParameter(isOptional = false, xmlName = "pause_milliseconds")
@@ -35,8 +41,13 @@ class PauseState extends AbstractState {
 	@Override
 	public Event run(Host h, Event lastEvent) {
 		try {
+			ScenarioScheduler.INSTANCE.unscheduleScenario(super.getScenarioId());
 			Thread.sleep(pause);
-		} catch (InterruptedException e) {						
+			ScenarioScheduler.INSTANCE.scheduleScenario(ScenarioPool.INSTANCE.getScenario(super.getScenarioId()));
+		} catch (InterruptedException e)
+		{						
+		} catch (SchedulerException e) {
+			e.printStackTrace();
 		}
 		
 		return new Event(EventType.SUCCESS);

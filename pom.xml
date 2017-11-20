@@ -30,7 +30,7 @@
 							<transformers>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>com.nc.monitor.ServMon</mainClass>
+									<mainClass>com.nc.main.AdminsBuddy</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>
@@ -39,6 +39,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.7.0</version>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
@@ -84,11 +85,11 @@
 			<artifactId>quartz-jobs</artifactId>
 			<version>2.2.1</version>
 		</dependency>
-		<dependency>
+		<!--dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.39</version>
-		</dependency>
+		</dependency-->
 		<dependency>
 			<groupId>com.cronutils</groupId>
 			<artifactId>cron-utils</artifactId>
@@ -107,11 +108,11 @@
 		
 		
 		
-		<dependency>
-	<groupId>commons-net</groupId>
-	<artifactId>commons-net</artifactId>
-	<version>3.3</version>
-	</dependency>
+		<!--dependency>
+			<groupId>commons-net</groupId>
+			<artifactId>commons-net</artifactId>
+			<version>3.3</version>
+		</dependency-->
 
 
 

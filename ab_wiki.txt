@@ -1,0 +1,164 @@
+[TOC]
+## XML configuration
+The program uses xml configuration file to run.
+The xml configuration has four major blocks: Hosts, Informers, Scenarios, Global options.
+### Hosts
+Hosts section (xml element **hosts**) incudes **host** entries (xml elements **host**)  that will be used in scenarios.
+~~~xml
+<hosts>
+		<host id="moodle">
+			<address>moodle.cs.somehost.ca</address>
+			<url>http://moodle.cs.somehost.ca/</url>
+			<ssh_params>
+				<port>22</port>  
+				<username>username</username>    
+				<password>password</password>
+			</ssh_params>
+			<tags>
+				<tag>
+					<id>vmid</id>
+					<value>157</value>
+				</tag>
+				<tag>
+					<id>must_contain</id>
+					<value>CS Moodle</value>
+				</tag>
+			</tags>
+		</host>
+        .
+        .
+ </hosts>     
+~~~
+* **Host id** (xml attribute **id**): identifier of the host. Should be unique within one XML configuration file. Mandatory parameter
+* **Host address** (xml element **address**): ip address or domain name of the host: mandatory parameter, only one address is allowed
+* **Host URL** (xml element **url**): URL of the host: optional parameter, up to one URL is allowed
+* **Host SSH connection parameters** (xml element **ssh_params**): optional parameter. Includes:
+    * **Port** (xml element **port**): SSH port of the host. Mandatory parameter
+    * **Username** (xml element **username**): Username of SSH user. Mandatory parameter
+    * Either of the following elements must be set:
+        *  **Password** (xml element **password**): Password of SSH user. 
+        *  **Path to SSH private key** (xml element **keypath**): Full path to the private key for the SSH connection in the system where Admin Buddy is running (e.g., C:\keys\root.ppk)
+* **Host tags** (xml element **tags**): Host tags are user-defined key-value pairs that can be used in scenarios (see Scenarios section). Optional parameter. Includes:
+    * **Tag ID** (xml element **id**): identifier (key) of the tag. should be unique within one host. Can contain letters a-z, A-Z, underscores (_) and digits 0-9. Mandatory parameter.
+    * **Tag Value** (xml element **value**): value of the tag .Mandatory parameter
+### Informers
+Informers section (xml element **informers**) includes **informer** entries (xml elements **informer**)  that will be used in scenarios.
+~~~xml
+<informers>
+		<informer id="outlookemail">
+			<email>
+				<provider>outlook</provider>
+				<email_address>name@something.ca</email_address>
+				<sender_name>First Last</sender_name>
+				<password>youremailpassword</password>
+				<addressees>
+					<address>sendto1@somemail.com</address>
+                    <address>sendto2@somemail.com</address>
+					<address>9020000000@msg.mobileprovider.com</address>
+				</addressees>
+			</email>
+		</informer>
+        <email>
+				<connection_parameters>
+					<host_name>stp.somemail.com</host_name>
+					<smtp_port>465</smtp_port>
+					<use_ssl>true</use_ssl>
+					<use_tls>false</use_tls>
+				</connection_parameters>
+				<email_address>name@something.com</email_address>
+				<sender_name>First Last</sender_name>
+				<password>youremailpassword</password>
+				<addressees>
+					<address>sendto2@somemail.com</address>
+                    <address>sendto3@somotheremail.com</address>
+				</addressees>
+		</email>
+		<informer id="console">
+			<console/>
+		</informer>
+        .
+        .
+</informers>
+~~~
+* **Informer id** (xml attribute **id**): identifier of the informer. Should be unique within one XML configuration file. Mandatory parameter. Each informer contains one of the following xml elements:
+
+#### Console
+
+Closed xml element **console**. The information about events will be written to the system console (stdout).
+
+#### Email
+
+XML element **email**. The information about events will be sent as email messages.
+
+* **SMTP Connection parameters** (xml element **connection_parameters**): optional parameter. SMTP Connection parameters must be set if **provider** element is absent:
+    * **Host name** (xml element **host_name**): mandatory parameter. SMTP host name of your email provider. Can usually be found in the settings of your email client.
+    * **SMTP port** (xml element **smtp_port**): mandatory parameter. SMTP port of your email provider. Can usually be found in the settings of your email client.
+    * **Use SSL** (xml element **use_ssl**): mandatory parameter. Valid values are *true* or *false*. The correct value can usually be found in the settings of your email client. Otherwise, just try with both values.
+    * **Use TLS** (xml element **use_tls**): mandatory parameter. Valid values are  *true* or *false*. The correct value can usually be found in the settings of your email client. Otherwise, just try with both values.
+* **Email provider** (xml element **provider**): optional parameter. Valid values are: *outlook* and *gmail*. Email provider must be set if **connection_parameters** element is absent.
+* **Sender email address** (xml element **email_address**): mandatory parameter. The address of the email box that will be used to send email messages from it.
+* **Sender name** (xml element **sender_name**): mandatory parameter. The sender name of the sender email box mentioned above. Please be advised that some email providers prohibit using sender names that are not equal to the sender name of your email box.
+* **Password to the sender email box** (xml element **password**): mandatory parameter. The password to the sender email box mentioned above.
+* **The list of email boxes that will receive your message** (xml element **addressees**): mandatory parameter. Contains one or more **address** xml elements:
+    * **Receiver address** (xml element **address**): mandatory parameter. Email address of the receiver.
+### Scenarios
+Scenarios section (xml element **scenarios**) incudes **scenario** entries (xml elements **scenario**). Scenario is a main element of the configuration. Scenario can be described as a sequence of actions implemented as a state machine.
+Let's consider the following simple scenario:
+~~~xml
+		<scenario id="Web Check" interval="1H">
+			<states>
+				<port_check seq="initial">	
+					<port>80</port>
+					<timeout>2000</timeout>
+					<transition event="failure" target="inform"/>
+				    <transition event="exception" target="inform"/>
+					<transition event="success" target="final"/>
+				</port_check>			
+				<inform seq="inform">
+					<transition event="success" target="final"/>
+				</inform>				
+				<final/>
+			</states>
+			<host_ids>
+				<host_id>mywebserver1</host_id>
+				<host_id>mywebserver2</host_id>					
+			</host_ids>
+			<informer_ids>
+				<informer_id>myconsole</informer_id>
+				<informer_id>myemail</informer_id>				
+			</informer_ids>
+		</scenario>
+~~~
+This scenario checks if port 80 is open at *hosts* with identifiers "mywebserver1" and "mywebserver2" with 1 hour interval. If the port is not open or some kind of exception occured, it sends the message with information using *informers* with identifiers "myconsole" and "myemail".
+Each scneario has 3 sections: States, Host identifiers, Informer identifiers.
+#### States
+States section (xml element **states**) contains state elements. Each state element has a mandatory attribute **seq** (Sequence). All sequences should be unique within one scenario. The following state elements (states) are available: 
+##### Port check state
+Xml element **port_check**.
+##### Ssh state
+Xml element **ssh**.
+##### Check if host is reachable state (ping)
+Xml element **is_reachable**.
+##### Webpage check state
+Xml element **webcheck**.
+##### Local command execution state
+Xml element **local_exec**.
+##### Pause state
+Xml element **pause**.
+##### Condition check state
+Xml element **condition_check**.
+##### Inform state
+Xml element **inform**.
+##### Final state
+Xml element **final**.
+#### Host identifiers
+Host identifiers section (xml element **host_ids**) a list of **host identifiers** (xml elements **host_id**) that will be used in this scenario. Host identifier is **id** of the host described in **Hosts** section (please refer to **Hosts** section for more details).
+#### Informer identifiers
+Informer identifiers section (xml element **informer_ids**) contains a list of **informer identifiers** (xml elements **informer_id**) that will be used in this scenario. Informer identifier is **id** of the informer described in **Informers** section (please refer to **Informers** section for more details).
+### Global options
+
+
+
+
+
+

@@ -18,7 +18,7 @@ class WebCheckState extends AbstractState {
 	WebCheckState(String seq, Map<Event, String> transitions,
 			String scenarioId, Map<String, Object> parameters) throws ConfigurationException {
 		super(seq, transitions, scenarioId, parameters);
-		
+		//TODO really MUST contain?
 		mustContain = (String) parameters.get("must_contain");
 	}
 

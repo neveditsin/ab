@@ -1,12 +1,10 @@
 package com.nc.inform;
 
-import java.util.List;
+import java.util.Collection;
 
-import org.apache.commons.mail.DefaultAuthenticator;
-import org.apache.commons.mail.Email;
 import org.apache.commons.mail.EmailException;
-import org.apache.commons.mail.SimpleEmail;
 
+import com.nc.utils.EmailUtils;
 import com.nc.utils.GlobalLogger;
 
 public abstract class AbstractEmailInformer extends AbstractInformer {
@@ -29,12 +27,12 @@ public abstract class AbstractEmailInformer extends AbstractInformer {
 	private final boolean useTls;
 
 	
-	private final List<String> recipients;
+	private final Collection<String> recipients;
 
 
 	public AbstractEmailInformer(String id, String email, String password,
 			String senderName, String hostName, int smtpPort,
-			boolean useSslSmtp, boolean useTls, List<String> recipients) {
+			boolean useSslSmtp, boolean useTls, Collection<String> recipients) {
 		super(id);
 		this.email = email;
 		this.password = password;
@@ -53,28 +51,8 @@ public abstract class AbstractEmailInformer extends AbstractInformer {
 			throw new Exception("Recipients are empty");
 		}
 		try {
-			Email emailMsg = new SimpleEmail();
-			emailMsg.setHostName(hostName);
-
-			emailMsg.setSmtpPort(smtpPort);
-			if (useSslSmtp) {
-				emailMsg.setSSLOnConnect(true);
-				emailMsg.setSslSmtpPort(Integer.toString(smtpPort));
-			}
-
-			emailMsg.setAuthenticator(new DefaultAuthenticator(this.email,
-					this.password));
-			emailMsg.setStartTLSEnabled(useTls);
-			emailMsg.setFrom(email, senderName);
-
-			emailMsg.setSubject(message.getShortMessage());
-			emailMsg.setMsg(message.getFullDescription());
-
-			for (String r : recipients) {
-				emailMsg.addTo(r);
-			}
-
-			emailMsg.send();
+			EmailUtils.SendEmail(email, password, senderName, recipients, message.getFullDescription(),
+					message.getShortMessage(), hostName, smtpPort, useSslSmtp, useTls);
 		} catch (EmailException e) {
 			GlobalLogger.error("Error sending email: ", e);
 			throw new Exception(e);

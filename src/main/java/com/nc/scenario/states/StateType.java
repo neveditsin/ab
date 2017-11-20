@@ -6,7 +6,7 @@ import java.util.Map;
 public enum StateType {
 	SSH("ssh", SshState.class),
 	IS_REACHABLE("is_reachable", PingState.class),
-	PAUSE("pause",  PauseState.class),
+//	PAUSE("pause",  PauseState.class),
 	WEBCHECK("webcheck", WebCheckState.class),
 	INFORM("inform", InformState.class),
 	LOCAL_EXEC("local_exec", LocalExecState.class),
