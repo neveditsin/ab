@@ -14,7 +14,6 @@ import org.apache.commons.mail.SimpleEmail;
 
 
 public class EmailUtils {
-	
 	private static final String CONTENT_TEXTPLAIN = "text/plain";
 
     public static class InvalidContentTypeException extends Exception{
@@ -77,7 +76,10 @@ public class EmailUtils {
    
         //delete unrecognized message and throw exception
         final String contentType = msg.getContentType();
-		if (!contentType.equals(CONTENT_TEXTPLAIN)) {
+		if (!(contentType.equalsIgnoreCase(CONTENT_TEXTPLAIN) ||
+				contentType.contains(CONTENT_TEXTPLAIN))) {
+			System.out.println(Arrays.asList(msg.getFrom()).stream().map(a -> a.toString()).reduce("", (s2, s1) -> s2 + "," + s1));
+			System.out.println(msg.getSentDate());
 			if (deleteIfContentTypeIsInvalid) {
 				msg.setFlag(Flag.DELETED, true);
 				inbox.expunge();
@@ -102,13 +104,13 @@ public class EmailUtils {
 			Collection<String> recipients,
 			String message,
 			String subject,
-			String hostName, 
+			String smtpHostAddress, 
 			int smtpPort, 
 			boolean useSslSmtp,
 			boolean useTls 
 			) throws EmailException {
 		Email emailMsg = new SimpleEmail();
-		emailMsg.setHostName(hostName);
+		emailMsg.setHostName(smtpHostAddress);
 
 		emailMsg.setSmtpPort(smtpPort);
 		if (useSslSmtp) {
