@@ -12,7 +12,7 @@ public abstract class AbstractEmailInformer extends AbstractInformer {
 	public String toString() {
 		return this.getClass().getName() + "[email=" + email + ", password="
 				+ password + ", senderName=" + senderName + ", hostName="
-				+ hostName + ", smtpPort=" + smtpPort + ", useSslSmtp="
+				+ smtpHostAddress + ", smtpPort=" + smtpPort + ", useSslSmtp="
 				+ useSslSmtp + ", useTls=" + useTls + ", recipients="
 				+ recipients + "]";
 	}
@@ -21,7 +21,7 @@ public abstract class AbstractEmailInformer extends AbstractInformer {
 	private final String email;
 	private final String password;
 	private final String senderName;
-	private final String hostName;
+	private final String smtpHostAddress;
 	private final int smtpPort;
 	private final boolean useSslSmtp;
 	private final boolean useTls;
@@ -31,13 +31,13 @@ public abstract class AbstractEmailInformer extends AbstractInformer {
 
 
 	public AbstractEmailInformer(String id, String email, String password,
-			String senderName, String hostName, int smtpPort,
+			String senderName, String smtpHostAddress, int smtpPort,
 			boolean useSslSmtp, boolean useTls, Collection<String> recipients) {
 		super(id);
 		this.email = email;
 		this.password = password;
 		this.senderName = senderName;
-		this.hostName = hostName;
+		this.smtpHostAddress = smtpHostAddress;
 		this.smtpPort = smtpPort;
 		this.useSslSmtp = useSslSmtp;
 		this.useTls = useTls;
@@ -52,7 +52,7 @@ public abstract class AbstractEmailInformer extends AbstractInformer {
 		}
 		try {
 			EmailUtils.SendEmail(email, password, senderName, recipients, message.getFullDescription(),
-					message.getShortMessage(), hostName, smtpPort, useSslSmtp, useTls);
+					message.getShortMessage(), smtpHostAddress, smtpPort, useSslSmtp, useTls);
 		} catch (EmailException e) {
 			GlobalLogger.error("Error sending email: ", e);
 			throw new Exception(e);

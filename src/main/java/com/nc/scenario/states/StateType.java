@@ -12,6 +12,7 @@ public enum StateType {
 	LOCAL_EXEC("local_exec", LocalExecState.class),
 	CONDITION_CHECK("condition_check", ConditionCheckState.class),
 	PORT_CHECK("port_check", PortCheckState.class),
+	REMAIL_EXEC("remail_exec", EmailExecState.class),
 	FINAL("final", FinalState.class),
 	UNDEFINED("undefined", null);
 
