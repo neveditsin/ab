@@ -7,7 +7,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 
 
-import com.nc.config.GlobalConfig;
 
 import java.net.URI;
 
