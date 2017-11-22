@@ -24,6 +24,14 @@ public class EmailUtils {
 		private static final long serialVersionUID = 6309049819764135248L;    	
     }
     
+    public static class MailBoxIsEmptyException extends Exception{
+		public MailBoxIsEmptyException() {
+			super(String.format("Mailbox is empty"));
+		}
+
+		private static final long serialVersionUID = 6309049819764135248L;    	
+    }
+    
     public static class IncomingEmailMessage{
     	private final String message;
     	private final Date sentDate;
@@ -63,7 +71,7 @@ public class EmailUtils {
 			String password, 
 			String hostName, 
 			String inboxFolderName,
-			boolean deleteIfContentTypeIsInvalid) throws MessagingException, InvalidContentTypeException, IOException
+			boolean deleteIfContentTypeIsInvalid) throws MessagingException, InvalidContentTypeException, IOException, MailBoxIsEmptyException
 			  {
         Properties props = new Properties();
         props.setProperty("mail.store.protocol", "imaps");
@@ -72,6 +80,10 @@ public class EmailUtils {
         store.connect(hostName, email, password);
         Folder inbox = store.getFolder(inboxFolderName);
         inbox.open(Folder.READ_WRITE);
+        
+		if (inbox.getMessageCount() < 1) {
+			throw new MailBoxIsEmptyException();
+		}
         Message msg = inbox.getMessage(inbox.getMessageCount());
    
         //delete unrecognized message and throw exception

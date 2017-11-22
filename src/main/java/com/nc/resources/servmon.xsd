@@ -146,9 +146,13 @@
 		<xs:attribute type="xs:string" name="seq" use="required"/>
 	</xs:complexType>
 
-	<xs:complexType name="pauseType">
+	<xs:complexType name="remailExecType">
 		<xs:sequence>
-			<xs:element type="xs:long" name="pause_milliseconds" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:string" name="email_box" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:string" name="email_box_password" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:string" name="email_sender_name" minOccurs="1" maxOccurs="1"/>			
+			<xs:element type="xs:string" name="email_provider" minOccurs="1" maxOccurs="1"/>			
+			<xs:element type="xs:string" name="trusted_sender_email" minOccurs="1" maxOccurs="1"/>						
 			<xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute type="xs:string" name="seq" use="required"/>
@@ -194,7 +198,7 @@
 				<xs:element type="is_reachableType" name="is_reachable"/>
 				<xs:element type="sshType" name="ssh"/>
 				<xs:element type="informType" name="inform"/>      
-				<xs:element type="pauseType" name="pause"/> 
+				<xs:element type="remailExecType" name="remail_exec"/> 
 				<xs:element type="local_execType" name="local_exec"/> 
 				<xs:element type="condition_checkType" name="condition_check"/> 
 				<xs:element type="port_checkType" name="port_check"/> 
