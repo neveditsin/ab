@@ -65,13 +65,14 @@ public class XmlConfig implements Config {
 		
 		String htp = (String)xpath.evaluate("/cfg/http_port", inputSource, XPathConstants.STRING);
 		httpPort = !StringUtils.isEmpty(htp)? Integer.parseInt(htp) : 0;
-		if (httpPort < 1 || httpPort > 65535) {
+				
+		if (httpPort < 0 || httpPort > 65535) {
 			throw new ConfigurationException("Invalid http_port number: must be in range [1; 65535]");
 		}
 		
 		String wsp = (String)xpath.evaluate("/cfg/ws_port", inputSource, XPathConstants.STRING);
 		wsPort = !StringUtils.isEmpty(wsp)? Integer.parseInt(wsp) : 0;
-		if (httpPort < 1 || httpPort > 65535 || wsPort == httpPort) {
+		if (wsPort < 0 || wsPort > 65535 || (wsPort == httpPort && wsPort != 0)) {
 			throw new ConfigurationException("Invalid ws_port number: must be in range [1; 65535] and be different from httpPort");
 		}
 		

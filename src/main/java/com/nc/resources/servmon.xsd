@@ -152,7 +152,8 @@
 			<xs:element type="xs:string" name="email_box_password" minOccurs="1" maxOccurs="1"/>
 			<xs:element type="xs:string" name="email_sender_name" minOccurs="1" maxOccurs="1"/>			
 			<xs:element type="xs:string" name="email_provider" minOccurs="1" maxOccurs="1"/>			
-			<xs:element type="xs:string" name="trusted_sender_email" minOccurs="1" maxOccurs="1"/>						
+			<xs:element type="xs:string" name="trusted_sender_email" minOccurs="1" maxOccurs="1"/>			
+			<xs:element type="xs:string" name="required_subject" minOccurs="1" maxOccurs="1"/>				
 			<xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute type="xs:string" name="seq" use="required"/>

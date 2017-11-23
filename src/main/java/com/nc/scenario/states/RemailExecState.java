@@ -31,6 +31,9 @@ public class RemailExecState extends AbstractState {
 	@StateParameter(isOptional = false, xmlName = "trusted_sender_email")
 	private final String trustedEmail;
 	
+	@StateParameter(isOptional = false, xmlName = "required_subject")
+	private final String requiredSubject;
+	
 	private EmailProvider ep;
 	
 	protected RemailExecState(String seq, Map<Event, String> transitions, String scenarioId,
@@ -42,6 +45,7 @@ public class RemailExecState extends AbstractState {
 		provider = (String) parameters.get("email_provider");	
 		trustedEmail = (String) parameters.get("trusted_sender_email");
 		senderName = (String) parameters.get("email_sender_name");
+		requiredSubject = (String) parameters.get("required_subject");
 		
 		ep = EmailProvider.fromString(provider);
 		if (ep == null) {
@@ -61,7 +65,8 @@ public class RemailExecState extends AbstractState {
 				ep.getImapHostAddress(),
 				ep.getInboxFolderName(), 
 				trustedEmail,
-				senderName, 
+				senderName,
+				requiredSubject,
 				ep.getSmtpHostAddress(), 
 				ep.getSmtpPort(), 
 				ep.isSmtpUseSsl(),

@@ -6,6 +6,8 @@ import java.io.IOException;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 
+import com.nc.utils.GlobalLogger;
+
 
 
 public class HttpUi {
@@ -24,8 +26,10 @@ public class HttpUi {
 	}
 	
 	
-	public synchronized void setPage(String key, HttpHandler context){
-		server.getServerConfiguration().addHttpHandler(context, key);
+	public synchronized void setPage(String key, HttpHandler context) {
+		if (server != null) {
+			server.getServerConfiguration().addHttpHandler(context, key);
+		}
 	}
 	
 	public void start(int port) {
@@ -35,8 +39,7 @@ public class HttpUi {
 			
 			server.start();
 		} catch (IOException e) {
-			//TODO log failure
-			e.printStackTrace();
+			GlobalLogger.error("Cannot start HTTP server", e);
 		}		
 	}
 	

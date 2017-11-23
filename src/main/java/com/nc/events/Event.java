@@ -34,7 +34,7 @@ public class Event{
 	
 	@Override
 	public String toString() {
-		return et.toString() + (info != null? "[" +  info + "]" : "");
+		return et.toString() + (info != null? " [" +  info + "]" : "");
 	}
 
 

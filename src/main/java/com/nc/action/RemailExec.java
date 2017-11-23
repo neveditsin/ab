@@ -18,7 +18,7 @@ import com.nc.utils.GlobalLogger;
 
 public class RemailExec implements Action {
 	public RemailExec(String email, String password, String imapHostAddress, String inboxFolderName, String trustedSenderEmail,
-			String smtpSenderName, String smtpHostAddress, int smtpPort, boolean smtpUseSsl, boolean smtpUseTls) {
+			String smtpSenderName, String requiredSubject, String smtpHostAddress, int smtpPort, boolean smtpUseSsl, boolean smtpUseTls) {
 		super();
 		this.email = email;
 		this.password = password;
@@ -30,13 +30,15 @@ public class RemailExec implements Action {
 		this.smtpPort = smtpPort;
 		this.smtpUseSsl = smtpUseSsl;
 		this.smtpUseTls = smtpUseTls;
+		this.requiredSubject = requiredSubject;
 	}
 
 	private final String email;	
-	private final String password;
+	private final String password;	
 	private final String imapHostAddress;
 	private final String inboxFolderName;
 	private final String trustedSenderEmail;
+	private final String requiredSubject;
 	private final String smtpSenderName;
 	private final String smtpHostAddress;
 	private final int smtpPort;
@@ -56,23 +58,26 @@ public class RemailExec implements Action {
 	@Override
 	public Event exec() {
 		try {
-			IncomingEmailMessage m;
+			IncomingEmailMessage m = null;
 			try {
 				m = EmailUtils.ReadLastMessageAndDelete(email, password, imapHostAddress,
 						inboxFolderName, true);
-			} catch (MailBoxIsEmptyException | InvalidContentTypeException e1) {
+			} catch (MailBoxIsEmptyException empty) {
 				//nothing to do
+				return new Event(EventType.SUCCESS);
+			} catch (InvalidContentTypeException ic) {
+				GlobalLogger.warning("MESSAGE SKIPPED: " + ic.toString());
 				return new Event(EventType.SUCCESS);
 			}
 			
-			if (!m.getSubject().equals("REQ")) {
+			if (m.getSubject() == null || !m.getSubject().equals(requiredSubject)) {
 				//skip the message
-				GlobalLogger.info("MESSAGE SKIPPED: SUBJECT INVALID");
+				GlobalLogger.warning("MESSAGE SKIPPED: Invalid Subject");
 				return new Event(EventType.SUCCESS);
 			}
 			
 			if (false == checkSender(trustedSenderEmail, m.getSender())) {
-				GlobalLogger.error("INVALID SENDER: " + m.getSender());
+				GlobalLogger.warning("INVALID SENDER: " + m.getSender());
 				return new Event(EventType.FAILURE, "INVALID SENDER");
 			}
 
@@ -86,7 +91,7 @@ public class RemailExec implements Action {
 
 			try {
 				EmailUtils.SendEmail(email, password, smtpSenderName, Arrays.asList(new String[] { trustedSenderEmail }),
-						result.toString(), "RESP", smtpHostAddress, smtpPort, smtpUseSsl, smtpUseTls);
+						result.toString(), requiredSubject + ":RESP", smtpHostAddress, smtpPort, smtpUseSsl, smtpUseTls);
 			} catch (EmailException e) {
 				GlobalLogger.error(e.toString());
 				return new Event(EventType.EXCEPTION, e.toString());
@@ -100,11 +105,8 @@ public class RemailExec implements Action {
 		}
 	}
 
-
-
 	private boolean checkSender(String trustedSender, String sender) {
-		//TODO
-		return true;
+		return sender.matches(String.format("^.*<%s>$", trustedSender));
 	}
 
 	private Map<String, String> parseMessage(String message) throws Exception {
