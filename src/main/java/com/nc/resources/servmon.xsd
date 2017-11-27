@@ -64,6 +64,19 @@
 		</xs:sequence>
 	</xs:complexType>
 
+	<xs:complexType name="mailboxType">
+		<xs:sequence>
+			<xs:choice>
+				<xs:element type="xs:string" name="provider" minOccurs="1" maxOccurs="1"/>
+				<xs:element type="connection_parametersType" name="connection_parameters"  minOccurs="1" maxOccurs="1"/>
+			</xs:choice>	  
+			<xs:element type="xs:string" name="email_address" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:string" name="sender_name" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:string" name="password" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="addresseesType" name="addressees" minOccurs="1" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	
 	<xs:complexType name="emailType">
 		<xs:sequence>
 			<xs:choice>
