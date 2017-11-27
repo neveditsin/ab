@@ -6,13 +6,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.mail.EmailException;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.nc.events.Event;
 import com.nc.events.Event.EventType;
 import com.nc.utils.EmailUtils;
 import com.nc.utils.EmailUtils.IncomingEmailMessage;
-import com.nc.utils.EmailUtils.InvalidContentTypeException;
 import com.nc.utils.EmailUtils.MailBoxIsEmptyException;
 import com.nc.utils.GlobalLogger;
 
@@ -36,7 +36,7 @@ public class RemailExec implements Action {
 	private final String email;	
 	private final String password;	
 	private final String imapHostAddress;
-	private final String inboxFolderName;
+	private final String inboxFolderName;	
 	private final String trustedSenderEmail;
 	private final String requiredSubject;
 	private final String smtpSenderName;
@@ -59,48 +59,56 @@ public class RemailExec implements Action {
 	public Event exec() {
 		try {
 			IncomingEmailMessage m = null;
+
 			try {
-				m = EmailUtils.ReadLastMessageAndDelete(email, password, imapHostAddress,
-						inboxFolderName, true);
+				m = EmailUtils.ReadLastMessageAndDelete(email, password, imapHostAddress, inboxFolderName, true);
 			} catch (MailBoxIsEmptyException empty) {
-				//nothing to do
+				// nothing to do
 				return new Event(EventType.SUCCESS);
-			} catch (InvalidContentTypeException ic) {
-				GlobalLogger.warning("MESSAGE SKIPPED: " + ic.toString());
-				return new Event(EventType.SUCCESS);
-			}
-			
-			if (m.getSubject() == null || !m.getSubject().equals(requiredSubject)) {
-				//skip the message
-				GlobalLogger.warning("MESSAGE SKIPPED: Invalid Subject");
-				return new Event(EventType.SUCCESS);
-			}
-			
+			} 
+
+		
+			// if sender is invalid, do not send any response, just ignore the message
 			if (false == checkSender(trustedSenderEmail, m.getSender())) {
 				GlobalLogger.warning("INVALID SENDER: " + m.getSender());
 				return new Event(EventType.FAILURE, "INVALID SENDER");
 			}
 
+
+			// skip the message
+			if (m.getSubject() == null || !m.getSubject().equals(requiredSubject)) {
+				GlobalLogger.warning("MESSAGE SKIPPED: Invalid Subject");
+				EmailUtils.SendEmail(email, password, smtpSenderName,
+						Arrays.asList(new String[] { trustedSenderEmail }), "Invalid Subject",
+						requiredSubject + ":RESP", smtpHostAddress, smtpPort, smtpUseSsl, smtpUseTls);
+				return new Event(EventType.FAILURE, "Invalid Subject");
+			}
+
 			String message = m.getMessage();
 			Map<String, String> paramMap;
-			paramMap = parseMessage(message);
+			
+			try {
+				paramMap = parseMessage(message);
+			}
+			catch(Exception e) {
+				GlobalLogger.error(e.toString());
+				EmailUtils.SendEmail(email, password, smtpSenderName,
+						Arrays.asList(new String[] { trustedSenderEmail }), e.toString(),
+						requiredSubject + ":RESP", smtpHostAddress, smtpPort, smtpUseSsl, smtpUseTls);
+				return new Event(EventType.EXCEPTION, e.toString());
+			}
+
 
 			LocalExec le = new LocalExec(paramMap.get(FIELD_COMMAND), -1L, -1L,
 					Boolean.parseBoolean(paramMap.getOrDefault(FIELD_IS_DAEMON, "false")));
 			Event result = le.exec();
 
-			try {
-				EmailUtils.SendEmail(email, password, smtpSenderName, Arrays.asList(new String[] { trustedSenderEmail }),
-						result.toString(), requiredSubject + ":RESP", smtpHostAddress, smtpPort, smtpUseSsl, smtpUseTls);
-			} catch (EmailException e) {
-				GlobalLogger.error(e.toString());
-				return new Event(EventType.EXCEPTION, e.toString());
-			}
+			EmailUtils.SendEmail(email, password, smtpSenderName, Arrays.asList(new String[] { trustedSenderEmail }),
+					result.toString(), requiredSubject + ":RESP", smtpHostAddress, smtpPort, smtpUseSsl, smtpUseTls);
 
-			
 			return result;
-
 		} catch (Exception e) {
+			GlobalLogger.error(e.toString());
 			return new Event(EventType.EXCEPTION, e.toString());
 		}
 	}
@@ -111,28 +119,35 @@ public class RemailExec implements Action {
 
 	private Map<String, String> parseMessage(String message) throws Exception {
 		try {
-			String[] params = message.split("\\r?\\n");
 			Map<String, String> paramsMap = new HashMap<>();
-			for(String param : params) {
-				String[] pv = param.split("=");
-				String p = pv[0].trim().toLowerCase();
-				String v = pv[1].trim();				
-				if(MESSAGE_FIELDS.contains(p)){
-					paramsMap.put(p, v);
+
+			JSONObject jo = new JSONObject(preprocess(message));
+
+			MESSAGE_FIELDS.forEach(mf -> {
+				if (jo.has(mf)) {
+					paramsMap.put(mf, jo.getString(mf));
 				}
-			}
+			});
 
 			// check mandatory fields
 			if (!paramsMap.containsKey(FIELD_COMMAND)) {
 				throw new Exception("Message does not contain the mandatory field 'command'");
 			}
-			
-			return paramsMap;
-		} catch (Exception e) {
-			GlobalLogger.error(e.toString());
-			throw new Exception("Message Malformed: " + message);
-		}
 
+			return paramsMap;
+		} catch (JSONException e) {
+			GlobalLogger.error(e.toString());
+			throw new JSONException("Message Malformed: " + message + "\nException: " + e.toString());
+		}
+	}
+	
+	private static String preprocess(String s) {
+		//replace all html tags if present
+
+		return s.replaceAll("</?div>", "")
+				.replaceAll("</?br ?/?>", "\n")
+				.replaceAll("<html>.*</html>", "")
+				.trim();		
 	}
 	
 }

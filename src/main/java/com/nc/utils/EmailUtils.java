@@ -14,16 +14,7 @@ import org.apache.commons.mail.SimpleEmail;
 
 
 public class EmailUtils {
-	private static final String CONTENT_TEXTPLAIN = "text/plain";
 
-    public static class InvalidContentTypeException extends Exception{
-		public InvalidContentTypeException(String contentType) {
-			super(String.format("Invalid content type '%s'. text/plain is expected", contentType));
-		}
-
-		private static final long serialVersionUID = 6309049819764135248L;    	
-    }
-    
     public static class MailBoxIsEmptyException extends Exception{
 		public MailBoxIsEmptyException() {
 			super(String.format("Mailbox is empty"));
@@ -71,7 +62,7 @@ public class EmailUtils {
 			String password, 
 			String hostName, 
 			String inboxFolderName,
-			boolean deleteIfContentTypeIsInvalid) throws MessagingException, InvalidContentTypeException, IOException, MailBoxIsEmptyException
+			boolean deleteIfContentTypeIsInvalid) throws MessagingException, IOException, MailBoxIsEmptyException
 			  {
         Properties props = new Properties();
         props.setProperty("mail.store.protocol", "imaps");
@@ -86,22 +77,24 @@ public class EmailUtils {
 		}
         Message msg = inbox.getMessage(inbox.getMessageCount());
    
-        //delete unrecognized message and throw exception
-        final String contentType = msg.getContentType();
-		if (!(contentType.equalsIgnoreCase(CONTENT_TEXTPLAIN) ||
-				contentType.contains(CONTENT_TEXTPLAIN))) {
-			System.out.println(Arrays.asList(msg.getFrom()).stream().map(a -> a.toString()).reduce("", (s2, s1) -> s2 + "," + s1));
-			System.out.println(msg.getSentDate());
-			if (deleteIfContentTypeIsInvalid) {
-				msg.setFlag(Flag.DELETED, true);
-				inbox.expunge();
-			}
-			throw new InvalidContentTypeException(contentType);
-		}
-        
+
 		final String from = Arrays.asList(msg.getFrom()).stream().map(a -> a.toString()).reduce("", (s2, s1) -> s2 + "," + s1);
 		
-		IncomingEmailMessage ret = new IncomingEmailMessage(msg.getContent().toString(), msg.getSentDate(), msg.getSubject(), from);
+		String content = msg.getContent().toString();
+		
+		//if it's Multipart treat each part as String
+		if (msg.getContentType().toLowerCase().contains("multipart")) {
+			StringBuilder sb = new StringBuilder();
+			Multipart mp = (Multipart) msg.getContent();
+			for(int i = 0; i < mp.getCount(); i++) {
+				BodyPart bp = mp.getBodyPart(i);
+				sb.append(bp.getContent().toString());
+				sb.append("\n");
+			}
+			content = sb.toString();
+		}
+			
+		IncomingEmailMessage ret = new IncomingEmailMessage(content, msg.getSentDate(), msg.getSubject(), from);
 
 		msg.setFlag(Flag.DELETED, true);
         inbox.expunge();
