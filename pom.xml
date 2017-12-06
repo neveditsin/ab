@@ -4,7 +4,7 @@
 
 	<groupId>com.nc</groupId>
 	<artifactId>adminsbuddy</artifactId>
-	<version>0.85</version>
+	<version>0.87</version>
 	<packaging>jar</packaging>
 
 	<name>adminsbuddy</name>

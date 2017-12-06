@@ -48,22 +48,18 @@
 	</xs:complexType>
 	<!--hosts section end-->
 
-	<!--informers section begin-->
-	<xs:complexType name="addresseesType">
-		<xs:sequence>
-			<xs:element type="xs:string" name="address" minOccurs="1" maxOccurs="unbounded"/>
-		</xs:sequence>
-	</xs:complexType>
-
+	<!--mailboxes section begin-->	
 	<xs:complexType name="connection_parametersType">
 		<xs:sequence>
-			<xs:element type="xs:string" name="host_name" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:string" name="smtp_host_address" minOccurs="1" maxOccurs="1"/>
 			<xs:element type="xs:unsignedShort" name="smtp_port" minOccurs="1" maxOccurs="1"/>
-			<xs:element type="xs:boolean" name="use_ssl" minOccurs="1" maxOccurs="1"/>
-			<xs:element type="xs:boolean" name="use_tls" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:boolean" name="smtp_use_ssl" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:boolean" name="smtp_use_tls" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:string" name="imap_host_address" minOccurs="0" maxOccurs="1"/>
+			<xs:element type="xs:string" name="imap_inbox_folder_name" minOccurs="0" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
-
+	
 	<xs:complexType name="mailboxType">
 		<xs:sequence>
 			<xs:choice>
@@ -73,19 +69,26 @@
 			<xs:element type="xs:string" name="email_address" minOccurs="1" maxOccurs="1"/>
 			<xs:element type="xs:string" name="sender_name" minOccurs="1" maxOccurs="1"/>
 			<xs:element type="xs:string" name="password" minOccurs="1" maxOccurs="1"/>
-			<xs:element type="addresseesType" name="addressees" minOccurs="1" maxOccurs="1"/>
+		</xs:sequence>
+		<xs:attribute type="xs:string" name="id" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="mailboxesType">
+		<xs:sequence>
+			<xs:element type="mailboxType" name="mailbox" minOccurs="1" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
+	<!--mailboxes section end-->		
 	
+	<!--informers section begin-->
+	<xs:complexType name="addresseesType">
+		<xs:sequence>
+			<xs:element type="xs:string" name="address" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+
 	<xs:complexType name="emailType">
 		<xs:sequence>
-			<xs:choice>
-				<xs:element type="xs:string" name="provider" minOccurs="1" maxOccurs="1"/>
-				<xs:element type="connection_parametersType" name="connection_parameters"  minOccurs="1" maxOccurs="1"/>
-			</xs:choice>	  
-			<xs:element type="xs:string" name="email_address" minOccurs="1" maxOccurs="1"/>
-			<xs:element type="xs:string" name="sender_name" minOccurs="1" maxOccurs="1"/>
-			<xs:element type="xs:string" name="password" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:string" name="mailbox_id" minOccurs="1" maxOccurs="1"/>
 			<xs:element type="addresseesType" name="addressees" minOccurs="1" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
@@ -161,12 +164,9 @@
 
 	<xs:complexType name="remailExecType">
 		<xs:sequence>
-			<xs:element type="xs:string" name="email_box" minOccurs="1" maxOccurs="1"/>
-			<xs:element type="xs:string" name="email_box_password" minOccurs="1" maxOccurs="1"/>
-			<xs:element type="xs:string" name="email_sender_name" minOccurs="1" maxOccurs="1"/>			
-			<xs:element type="xs:string" name="email_provider" minOccurs="1" maxOccurs="1"/>			
-			<xs:element type="xs:string" name="trusted_sender_email" minOccurs="1" maxOccurs="1"/>			
-			<xs:element type="xs:string" name="required_subject" minOccurs="1" maxOccurs="1"/>				
+			<xs:element type="xs:string" name="mailbox_id" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:string" name="trusted_sender_email" minOccurs="1" maxOccurs="1"/>
+			<xs:element type="xs:string" name="required_subject" minOccurs="1" maxOccurs="1"/>
 			<xs:element type="transitionType" name="transition" minOccurs="1" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute type="xs:string" name="seq" use="required"/>
@@ -263,6 +263,8 @@
 	<xs:complexType name="cfgType">
 		<xs:sequence>
 			<xs:element type="hostsType" name="hosts" minOccurs="1"
+				maxOccurs="1" />
+			<xs:element type="mailboxesType" name="mailboxes" minOccurs="0"
 				maxOccurs="1" />
 			<xs:element type="informersType" name="informers"
 				minOccurs="1" maxOccurs="1" />

@@ -1,6 +1,8 @@
 package com.nc.config;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -28,10 +30,14 @@ import com.cronutils.utils.StringUtils;
 import com.nc.events.Event;
 import com.nc.host.GenericHost;
 import com.nc.host.Host;
-import com.nc.inform.ConfigurableEmailInformer;
 import com.nc.inform.ConsoleInformer;
-import com.nc.inform.EmailInformers;
+import com.nc.inform.EmailInformer;
 import com.nc.inform.Informer;
+import com.nc.mailbox.EmailProvider;
+import com.nc.mailbox.Mailbox;
+import com.nc.mailbox.MailboxParameter;
+import com.nc.mailbox.Mailboxes;
+import com.nc.mailbox.Mailboxes.MailboxFromProviderBuilder;
 import com.nc.scenario.GenericScenario;
 import com.nc.scenario.Scenario;
 import com.nc.scenario.ScenarioSchedule;
@@ -99,6 +105,9 @@ public class XmlConfig implements Config {
 		hosts = parseHosts((NodeList) xpath.evaluate("/cfg/hosts/host", inputSource, XPathConstants.NODESET));
 //		System.out.println(hosts);
 		
+		parseMailboxes((NodeList) xpath.evaluate("/cfg/mailboxes/mailbox", inputSource, XPathConstants.NODESET));
+//		System.out.println(mailboxes);
+		
 		List<Informer> informers = parseInformers((NodeList) xpath.evaluate("/cfg/informers/informer", inputSource, XPathConstants.NODESET));
 //		System.out.println(informers);
 
@@ -110,6 +119,58 @@ public class XmlConfig implements Config {
 
 
 	
+	private List<Mailbox> parseMailboxes(NodeList nl) throws ConfigurationException {
+		List<Mailbox> l = new ArrayList<>();
+		Set<String> idm = new HashSet<>();
+		for (int i = 0; i < nl.getLength(); i++) {
+			Node n = nl.item(i);
+			String id = n.getAttributes().getNamedItem("id").getTextContent();			
+			if(idm.add(id) != true){
+				throw new ConfigurationException("Each mailbox should have unique id. Id '" + id + "' is not unique.");
+			}
+			
+			Map<String, String> paramMap = new HashMap<>();
+			for (int j = 0; j < n.getChildNodes().getLength(); j++) {				
+				Node ic = n.getChildNodes().item(j);
+				paramMap.put(ic.getNodeName(), ic.getTextContent());
+			}
+			
+			if (paramMap.containsKey("connection_parameters")) {
+				throw new ConfigurationException("Not implemented");
+				// new mailbox from parameters
+			} else {
+				//new mailbox from provider
+				MailboxFromProviderBuilder builder = new Mailboxes.MailboxFromProviderBuilder();
+				builder.setId(id);
+				
+				EmailProvider p = EmailProvider.fromString(paramMap.get("provider"));
+				if (p == null) {
+					throw new ConfigurationException("Unrecognized provider '" + paramMap.get("provider") + "'.\n"
+							+ "Available providers: " + EmailProvider.getAvailableProviders());
+				}
+				builder.setProvider(p);
+				for (Method meth : Mailboxes.MailboxFromProviderBuilder.class.getDeclaredMethods()) {
+					if (meth.isAnnotationPresent(MailboxParameter.class)) {
+						MailboxParameter an = meth.getAnnotation(MailboxParameter.class);
+						try {
+							meth.invoke(builder, paramMap.get(an.xmlName()));
+						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+							e.printStackTrace();
+							throw new ConfigurationException(e.getMessage());
+						}
+					}
+				}
+				l.add(builder.build());
+			}
+			
+			
+		}
+		return l;
+	}
+
+
+
+
 	@Override
 	public int getHttpPort() {
 		return httpPort;
@@ -223,10 +284,8 @@ public class XmlConfig implements Config {
 	}
 	
 	private static Informer parseEmailInformer(String id, Node n) throws ConfigurationException {
-		Map<String, String> emailParams = new HashMap<>();
 		List<String> addresseesList = new ArrayList<>();
-		boolean isConfigurable = false;
-		//collect all parameters to map begin
+		Mailbox mb = null;
 		for (int i = 0; i < n.getChildNodes().getLength(); i++) {
 			Node cn = n.getChildNodes().item(i);
 			if (cn.getNodeName().equals("addressees")) {
@@ -236,40 +295,16 @@ public class XmlConfig implements Config {
 						addresseesList.add(addressees.item(j).getTextContent());
 					}
 				}
-			} else if (cn.getNodeName().equals("connection_parameters")) {
-				isConfigurable = true;
-				NodeList cparams = cn.getChildNodes();
-				for (int j = 0; j < cparams.getLength(); j++) {
-					emailParams.put(cparams.item(j).getNodeName(), cparams
-							.item(j).getTextContent());
+			} else if (cn.getNodeName().equals("mailbox_id")) {				
+				String mboxId = cn.getTextContent();
+				mb = Mailboxes.getMailbox(mboxId);
+				if (mb == null) {
+					throw new ConfigurationException("Mailbox with id '" + mboxId + "' is not recognized");
 				}
-			} else {
-				emailParams.put(cn.getNodeName(), cn.getTextContent());
-			}
-		}		
-		//collect all parameters to map end		
-		
-		
-		if (isConfigurable){
-			return new ConfigurableEmailInformer(id,
-					emailParams.get("email_address"),
-					emailParams.get("password"),
-					emailParams.get("sender_name"), 
-					emailParams.get("host_name"), 
-					Integer.parseInt(emailParams.get("smtp_port")), 
-					Boolean.parseBoolean(emailParams.get("use_ssl")), 
-					Boolean.parseBoolean(emailParams.get("use_tls")), 
-					addresseesList);
-		} else if (emailParams.get("provider") != null){
-			return EmailInformers.getEmailInformer(emailParams.get("provider"),
-					id,
-					emailParams.get("email_address"),
-					emailParams.get("password"),
-					emailParams.get("sender_name"), addresseesList);
-		} else {
-			throw new ConfigurationException("Email informer \"" + id
-					+ "\" is not recognized. Please check the configuration");
+			}			
 		}
+		return new EmailInformer(id, mb, addresseesList);	
+
 	}
 
 	private static Informer parseConsoleInformer(String id, Node i){		

@@ -1,7 +1,10 @@
-package com.nc.utils;
+package com.nc.mailbox;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public enum EmailProvider {
 	GMAIL("gmail", "imap.gmail.com", "INBOX", "smtp.gmail.com", 587, false, true),
@@ -15,6 +18,11 @@ public enum EmailProvider {
 			MAP.put(e.name, e);
 		}
 	}	
+	
+	public static List<String> getAvailableProviders() {
+		return Arrays.stream(EmailProvider.values()).map(p -> p.name).collect(Collectors.toList());		
+	}
+	
 	public static EmailProvider fromString(String emailProvider) {
 		return MAP.get(emailProvider.toLowerCase());
 	}	

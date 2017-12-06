@@ -10,46 +10,35 @@ import com.nc.action.RemailExec;
 import com.nc.events.Event;
 
 import com.nc.host.Host;
-import com.nc.utils.EmailProvider;
+import com.nc.mailbox.Mailbox;
+import com.nc.mailbox.Mailboxes;
 
 
 public class RemailExecState extends AbstractState {
-	//TODO change to email_box
 	
-	@StateParameter(isOptional = false, xmlName = "email_box")
-	private final String email;
-	
-	@StateParameter(isOptional = false, xmlName = "email_box_password")
-	private final String password;
-	
-	@StateParameter(isOptional = false, xmlName = "email_sender_name")
-	private final String senderName;
-	
-	@StateParameter(isOptional = false, xmlName = "email_provider")
-	private final String provider;
-	
+	@StateParameter(isOptional = false, xmlName = "mailbox_id")
+	private final String mailboxId;
+
 	@StateParameter(isOptional = false, xmlName = "trusted_sender_email")
 	private final String trustedEmail;
 	
 	@StateParameter(isOptional = false, xmlName = "required_subject")
 	private final String requiredSubject;
 	
-	private EmailProvider ep;
+	private Mailbox mb;
 	
 	protected RemailExecState(String seq, Map<Event, String> transitions, String scenarioId,
 			Map<String, Object> parameters) throws ConfigurationException {
 		super(seq, transitions, scenarioId, parameters);
 		
-		email = (String) parameters.get("email_box");
-		password = (String) parameters.get("email_box_password");
-		provider = (String) parameters.get("email_provider");	
 		trustedEmail = (String) parameters.get("trusted_sender_email");
-		senderName = (String) parameters.get("email_sender_name");
 		requiredSubject = (String) parameters.get("required_subject");
+		mailboxId  = (String) parameters.get("mailbox_id");
 		
-		ep = EmailProvider.fromString(provider);
-		if (ep == null) {
-			throw new ConfigurationException("email provider '" + provider + "' not found");
+		mb = Mailboxes.getMailbox(mailboxId);
+		if (mb == null) {
+			throw new ConfigurationException("Scenario '" + scenarioId + "'. State '" + seq + "': Mailbox with id '"
+					+ mailboxId + "' not found");
 		}
 	}
 
@@ -60,17 +49,17 @@ public class RemailExecState extends AbstractState {
 
 	@Override
 	public Event run(Host h, Event lastEvent) throws ConfigurationException {
-		return new RemailExec(email,
-				password,
-				ep.getImapHostAddress(),
-				ep.getInboxFolderName(), 
+		return new RemailExec(mb.getEmailAddress(),
+				mb.getEmailPassword(),
+				mb.getImapHostAddress(),
+				mb.getInboxFolderName(), 
 				trustedEmail,
-				senderName,
+				mb.getSenderName(),
 				requiredSubject,
-				ep.getSmtpHostAddress(), 
-				ep.getSmtpPort(), 
-				ep.isSmtpUseSsl(),
-				ep.isSmtpUseTls())
+				mb.getSmtpHostAddress(), 
+				mb.getSmtpPort(), 
+				mb.isSmtpUseSsl(),
+				mb.isSmtpUseTls())
 				.exec();
 	}
 
