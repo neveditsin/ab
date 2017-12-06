@@ -37,6 +37,7 @@ import com.nc.mailbox.EmailProvider;
 import com.nc.mailbox.Mailbox;
 import com.nc.mailbox.MailboxParameter;
 import com.nc.mailbox.Mailboxes;
+import com.nc.mailbox.Mailboxes.MailboxFromParametersBuilder;
 import com.nc.mailbox.Mailboxes.MailboxFromProviderBuilder;
 import com.nc.scenario.GenericScenario;
 import com.nc.scenario.Scenario;
@@ -105,8 +106,11 @@ public class XmlConfig implements Config {
 		hosts = parseHosts((NodeList) xpath.evaluate("/cfg/hosts/host", inputSource, XPathConstants.NODESET));
 //		System.out.println(hosts);
 		
-		parseMailboxes((NodeList) xpath.evaluate("/cfg/mailboxes/mailbox", inputSource, XPathConstants.NODESET));
+		@SuppressWarnings("unused")
+		List<Mailbox> mailboxes = parseMailboxes((NodeList) xpath.evaluate("/cfg/mailboxes/mailbox", inputSource, XPathConstants.NODESET));
 //		System.out.println(mailboxes);
+		
+		
 		
 		List<Informer> informers = parseInformers((NodeList) xpath.evaluate("/cfg/informers/informer", inputSource, XPathConstants.NODESET));
 //		System.out.println(informers);
@@ -122,6 +126,7 @@ public class XmlConfig implements Config {
 	private List<Mailbox> parseMailboxes(NodeList nl) throws ConfigurationException {
 		List<Mailbox> l = new ArrayList<>();
 		Set<String> idm = new HashSet<>();
+		Node connectionParameters = null;
 		for (int i = 0; i < nl.getLength(); i++) {
 			Node n = nl.item(i);
 			String id = n.getAttributes().getNamedItem("id").getTextContent();			
@@ -132,12 +137,25 @@ public class XmlConfig implements Config {
 			Map<String, String> paramMap = new HashMap<>();
 			for (int j = 0; j < n.getChildNodes().getLength(); j++) {				
 				Node ic = n.getChildNodes().item(j);
-				paramMap.put(ic.getNodeName(), ic.getTextContent());
+				if (ic.getNodeName().equals("connection_parameters")) {
+					connectionParameters = ic;
+				} else {
+					paramMap.put(ic.getNodeName(), ic.getTextContent());
+				}
+
 			}
 			
-			if (paramMap.containsKey("connection_parameters")) {
-				throw new ConfigurationException("Not implemented");
+			if (connectionParameters != null) {
 				// new mailbox from parameters
+				MailboxFromParametersBuilder builder = new Mailboxes.MailboxFromParametersBuilder();
+				builder.setId(id);
+				for (int k = 0; k < connectionParameters.getChildNodes().getLength(); k++) {				
+					Node cp = connectionParameters.getChildNodes().item(k);
+					paramMap.put(cp.getNodeName(), cp.getTextContent());
+				}
+				collectMailBoxParameters(paramMap, builder, Mailboxes.MailboxFromParametersBuilder.class);
+				l.add(builder.build());
+			
 			} else {
 				//new mailbox from provider
 				MailboxFromProviderBuilder builder = new Mailboxes.MailboxFromProviderBuilder();
@@ -149,17 +167,7 @@ public class XmlConfig implements Config {
 							+ "Available providers: " + EmailProvider.getAvailableProviders());
 				}
 				builder.setProvider(p);
-				for (Method meth : Mailboxes.MailboxFromProviderBuilder.class.getDeclaredMethods()) {
-					if (meth.isAnnotationPresent(MailboxParameter.class)) {
-						MailboxParameter an = meth.getAnnotation(MailboxParameter.class);
-						try {
-							meth.invoke(builder, paramMap.get(an.xmlName()));
-						} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-							e.printStackTrace();
-							throw new ConfigurationException(e.getMessage());
-						}
-					}
-				}
+				collectMailBoxParameters(paramMap, builder, MailboxFromProviderBuilder.class);
 				l.add(builder.build());
 			}
 			
@@ -169,6 +177,20 @@ public class XmlConfig implements Config {
 	}
 
 
+	private void collectMailBoxParameters(Map<String, String> paramMap, Object builder, Class<?> builderClass)
+			throws ConfigurationException {
+		for (Method meth : builderClass.getDeclaredMethods()) {
+			if (meth.isAnnotationPresent(MailboxParameter.class)) {
+				MailboxParameter an = meth.getAnnotation(MailboxParameter.class);
+				try {
+					meth.invoke(builder, paramMap.get(an.xmlName()));
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					e.printStackTrace();
+					throw new ConfigurationException(e.getMessage());
+				}
+			}
+		}
+	}
 
 
 	@Override
