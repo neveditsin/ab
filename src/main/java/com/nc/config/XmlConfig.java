@@ -126,8 +126,8 @@ public class XmlConfig implements Config {
 	private List<Mailbox> parseMailboxes(NodeList nl) throws ConfigurationException {
 		List<Mailbox> l = new ArrayList<>();
 		Set<String> idm = new HashSet<>();
-		Node connectionParameters = null;
 		for (int i = 0; i < nl.getLength(); i++) {
+			Node connectionParameters = null;
 			Node n = nl.item(i);
 			String id = n.getAttributes().getNamedItem("id").getTextContent();			
 			if(idm.add(id) != true){

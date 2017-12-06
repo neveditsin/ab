@@ -107,6 +107,12 @@ public class RemailExec implements Action {
 					result.toString(), requiredSubject + ":RESP", smtpHostAddress, smtpPort, smtpUseSsl, smtpUseTls);
 
 			return result;
+		} catch (javax.mail.AuthenticationFailedException e) {
+			GlobalLogger.error(e.toString() + "\n{ " +
+					"email: " + email + "\n" +
+					"password: " + password + "\n" +
+					"smtpHostAddress: " + smtpHostAddress + " }\n");
+			return new Event(EventType.EXCEPTION, e.toString());		
 		} catch (Exception e) {
 			GlobalLogger.error(e.toString());
 			return new Event(EventType.EXCEPTION, e.toString());
